@@ -13,10 +13,13 @@
     /* Curran Crafts v1.1 — light register: warm parchment field, cream surfaces */
     --bg:#e8dcc5; --bg2:#ded0b6;
     --surface:#f6efdf; --surface2:#efe6d2; --surface3:#e6dac1;
-    --ink:#2d2521; --ink-soft:#5a4f44; --muted:#8a7d6b;
+    --ink:#2d2521; --ink-soft:#5a4f44; --muted:#695f52;
     --border:#d8c8a8; --border-soft:#e2d4ba;
     /* working accent = COPPER (gold reserved); red = the human note */
     --copper:#a85c32; --copper-light:#c8804e;
+    /* a11y: copper darkened for SMALL TEXT only (WCAG AA 4.5:1 on every surface).
+       The canonical copper above is unchanged and still owns fills, rules and hardware. */
+    --copper-text:#904f2b;
     --on-copper:#2b1c12; /* dark text for copper/accent fills, replaces old color:var(--bg) */
     /* teaching grammar — three roles, three values: red = root/home, amber = active tone, neutral = passive scale member */
     --root:#9e2f22; --tone:#cf9333; --scale-dot:#9a8d77;
@@ -64,7 +67,7 @@
     text-shadow: none;
   }
   .h1-flourish {
-    color: var(--copper-light); font-size: 0.6em; vertical-align: 0.18em;
+    color: var(--copper-text); font-size: 0.6em; vertical-align: 0.18em;
     padding: 0 10px; text-shadow: none;
   }
   header p.subtitle {
@@ -80,7 +83,7 @@
   .nav-btn {
     background: var(--surface2);
     border: 1px solid var(--border);
-    color: var(--copper-light);
+    color: var(--copper-text);
     padding: 5px 11px;
     font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.66rem;
     letter-spacing: 0.08em; cursor: pointer; border-radius: 1px;
@@ -136,14 +139,14 @@
   /* SECTION LABEL */
   .section-label {
     font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.7rem; letter-spacing: 0.14em;
-    color: var(--copper); text-transform: uppercase; margin-bottom: 16px; text-align: center;
+    color: var(--copper-text); text-transform: uppercase; margin-bottom: 16px; text-align: center;
   }
 
   /* PAGE TITLE — the first orientation on every panel, just below the menu */
   .page-head { text-align: center; margin: 2px 0 14px; }
   .page-sub {
     font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.72rem;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--copper); margin-top: 6px;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--copper-text); margin-top: 6px;
   }
 
   /* BASE CARD */
@@ -207,7 +210,7 @@
     background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--copper-light); border-radius: 2px;
     box-shadow: 1px 2px 8px rgba(50,25,5,0.14); padding: 18px; text-align: center; min-height: 100px;
   }
-  #chord-name-display { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; color: var(--copper); margin-bottom: 8px; }
+  #chord-name-display { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; color: var(--copper-text); margin-bottom: 8px; }
   #chord-notes-display { font-size: 1.05rem; color: var(--ink); margin-bottom: 6px; }
   #chord-formula { font-size: 0.88rem; color: var(--muted); font-style: italic; }
 
@@ -271,16 +274,16 @@
   .jl-text { display: flex; flex-direction: column; flex: 1; }
   .jl-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: 1.08rem; color: var(--ink); }
   .jl-blurb { font-size: 0.86rem; color: var(--muted); }
-  .jl-go { color: var(--copper); font-size: 1.3rem; flex-shrink: 0; }
+  .jl-go { color: var(--copper-text); font-size: 1.3rem; flex-shrink: 0; }
 
   /* Lesson view chrome */
   #jazz-lesson { max-width: 640px; margin: 0 auto; }
   #jazz-lesson-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .jazz-back { background: none; border: none; color: var(--copper); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.92rem; font-weight: 600; cursor: pointer; padding: 6px 2px; }
-  .jazz-back:hover { color: var(--copper-light); }
+  .jazz-back { background: none; border: none; color: var(--copper-text); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.92rem; font-weight: 600; cursor: pointer; padding: 6px 2px; }
+  .jazz-back:hover { color: var(--copper-text); }
   .jazz-count { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
   .jazz-lesson-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: clamp(1.5rem, 6vw, 2rem); color: var(--ink); text-align: center; }
-  .jazz-lesson-sub { text-align: center; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--copper); margin-top: 6px; }
+  .jazz-lesson-sub { text-align: center; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--copper-text); margin-top: 6px; }
   .jazz-lede { text-align: center; font-size: 0.96rem; line-height: 1.7; color: var(--ink-soft); max-width: 540px; margin: 14px auto 22px; }
   .jazz-lede b { color: var(--ink); font-weight: 700; }
   #jazz-lesson-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border-soft); }
@@ -303,7 +306,7 @@
   #jazz-panel .lg-frame { background: var(--frame); }
   #jazz-panel .lg-guide { background: var(--tone); }
   #jazz-panel .jz-readout { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--copper-light); border-radius: 2px; box-shadow: 1px 2px 8px rgba(50,25,5,0.14); padding: 18px 22px; margin-top: 18px; min-height: 96px; }
-  #jazz-panel .ro-move { font-size: 0.96rem; line-height: 1.6; color: var(--copper); padding-bottom: 11px; margin-bottom: 11px; border-bottom: 1px solid var(--border-soft); animation: jzFadeIn 0.4s ease; }
+  #jazz-panel .ro-move { font-size: 0.96rem; line-height: 1.6; color: var(--copper-text); padding-bottom: 11px; margin-bottom: 11px; border-bottom: 1px solid var(--border-soft); animation: jzFadeIn 0.4s ease; }
   #jazz-panel .ro-id { font-size: 1.0rem; line-height: 1.7; color: var(--ink); }
   #jazz-panel .ro-id b { color: var(--ink); font-weight: 700; }
   @keyframes jzFadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
@@ -347,7 +350,7 @@
   #jazz-panel .station .st-name { font-family: 'Playfair Display', Georgia, serif; font-size: 1.32rem; color: var(--ink); margin-top: 2px; }
   #jazz-panel .station .st-mode { font-size: 0.64rem; color: var(--muted); font-style: italic; margin-top: 2px; min-height: 0.9em; }
   #jazz-panel .station.active { background: var(--surface); border-top-color: var(--copper-light); box-shadow: 2px 4px 12px rgba(50,25,5,0.22); }
-  #jazz-panel .station.active .st-roman, #jazz-panel .station.active .st-mode { color: var(--copper); }
+  #jazz-panel .station.active .st-roman, #jazz-panel .station.active .st-mode { color: var(--copper-text); }
   #jazz-panel .station .st-arrow { color: var(--border); font-size: 0.8rem; }
 
   /* ── Generic buttons used across lessons (primary = copper) ── */
@@ -385,7 +388,7 @@
   #jazz-panel .ls-meas:last-child .ls-bar::after { content: ''; position: absolute; right: -1px; top: 0; bottom: 0; width: 2px; background: var(--ink); }
   #jazz-panel .ls-final .ls-bar::after { width: 3px; right: -2px; }
   #jazz-panel .ls-meas.playing .ls-bar { background: rgba(200,128,78,0.20); }
-  #jazz-panel .ls-meas.playing .ls-chord { color: var(--copper); }
+  #jazz-panel .ls-meas.playing .ls-chord { color: var(--copper-text); }
   #jazz-panel .grid-foot { text-align: center; font-size: 0.72rem; color: var(--muted); margin-top: 9px; font-style: italic; }
 
   /* ── L6 phase pills ── */
@@ -400,7 +403,7 @@
   #jazz-panel .jz-doorway p { font-size: 0.92rem; line-height: 1.68; color: var(--ink-soft); }
   #jazz-panel .jz-doorway ul { list-style: none; margin-top: 11px; }
   #jazz-panel .jz-doorway li { font-size: 0.9rem; line-height: 1.55; color: var(--ink-soft); padding: 5px 0 5px 20px; position: relative; }
-  #jazz-panel .jz-doorway li::before { content: '\2192'; position: absolute; left: 0; color: var(--copper); font-weight: 700; }
+  #jazz-panel .jz-doorway li::before { content: '\2192'; position: absolute; left: 0; color: var(--copper-text); font-weight: 700; }
   #jazz-panel .jz-doorway li b { color: var(--ink); }
 
   /* ── L7 time-and-feel timeline ── */
@@ -414,7 +417,7 @@
   #jazz-panel .tl-dot.onbeat  { background: var(--copper); width: 17px; height: 17px; }
   #jazz-panel .tl-dot.offbeat { background: var(--copper-light); box-shadow: 0 0 0 2px var(--surface); }
   #jazz-panel .tl-dot.hit { transform: translate(-50%,-50%) scale(1.55); box-shadow: 0 0 12px 3px rgba(168,92,50,0.7); }
-  #jazz-panel .tl-amp { position: absolute; bottom: 6px; transform: translateX(-50%); font-size: 0.66rem; color: var(--copper-light); font-weight: 700; transition: left 0.4s cubic-bezier(.4,0,.2,1); }
+  #jazz-panel .tl-amp { position: absolute; bottom: 6px; transform: translateX(-50%); font-size: 0.66rem; color: var(--copper-text); font-weight: 700; transition: left 0.4s cubic-bezier(.4,0,.2,1); }
   #jazz-panel .jz-playhead { position: absolute; top: 6px; bottom: 24px; width: 2px; background: var(--root); opacity: 0; box-shadow: 0 0 8px 1px rgba(158,47,34,0.7); transform: translateX(-1px); pointer-events: none; }
   #jazz-panel .tl-legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 18px; margin-top: 12px; font-size: 0.74rem; color: var(--muted); }
   #jazz-panel .tl-legend span { display: inline-flex; align-items: center; gap: 7px; }
@@ -436,7 +439,7 @@
   /* Ear Training — Explore/Challenge toggle + interval list */
   .mode-toggle { display: flex; justify-content: center; margin-bottom: 16px; }
   .mode-btn {
-    background: var(--surface2); border: 1px solid var(--border); color: var(--copper-light);
+    background: var(--surface2); border: 1px solid var(--border); color: var(--copper-text);
     padding: 5px 16px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.7rem;
     letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: all 0.18s;
   }
@@ -459,7 +462,7 @@
   /* LESSON SUB-NAV — switch between ear-training modules, one shown at a time */
   .lesson-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 7px; margin: 4px 0 20px; }
   .lesson-tab {
-    background: var(--surface2); border: 1px solid var(--border); color: var(--copper-light);
+    background: var(--surface2); border: 1px solid var(--border); color: var(--copper-text);
     padding: 7px 16px; border-radius: 2px; cursor: pointer;
     font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.78rem; font-weight: 600;
     letter-spacing: 0.04em; transition: all 0.18s; display: inline-flex; align-items: center; gap: 8px;
@@ -488,10 +491,10 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
     box-shadow: 1px 2px 8px rgba(50,25,5,0.18); padding: 18px;
   }
-  #mode-name { font-family: 'Playfair Display', Georgia, serif; font-size: 1.4rem; color: var(--copper-light); margin-bottom: 3px; }
+  #mode-name { font-family: 'Playfair Display', Georgia, serif; font-size: 1.4rem; color: var(--copper-text); margin-bottom: 3px; }
   #mode-greek { font-style: italic; color: var(--muted); font-size: 0.92rem; margin-bottom: 10px; }
   #mode-feel { font-size: 0.98rem; line-height: 1.75; color: var(--ink); margin-bottom: 10px; }
-  #mode-pattern { font-family: monospace; font-size: 0.92rem; color: var(--copper-light); margin-bottom: 8px; letter-spacing: 0.06em; }
+  #mode-pattern { font-family: monospace; font-size: 0.92rem; color: var(--copper-text); margin-bottom: 8px; letter-spacing: 0.06em; }
   #mode-example { font-size: 0.88rem; color: var(--muted); font-style: italic; }
   #mode-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 14px; }
   .modes-stage { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 16px; }
@@ -525,7 +528,7 @@
     box-shadow: 1px 2px 6px rgba(50,25,5,0.14);
   }
   .diat-chord:hover { transform: translateY(-2px); box-shadow: 1px 5px 14px rgba(50,25,5,0.22); border-color: var(--copper-light); }
-  .diat-numeral { font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.78rem; color: var(--copper-light); margin-bottom: 1px; font-weight: 600; }
+  .diat-numeral { font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.78rem; color: var(--copper-text); margin-bottom: 1px; font-weight: 600; }
   .diat-chord-name { font-size: 0.92rem; color: var(--ink); font-weight: 600; }
   .diat-chord.major-q { border-top: 3px solid #5b86b0; }
   .diat-chord.minor-q { border-top: 3px solid #5a8f43; }
@@ -566,14 +569,14 @@
   .creed-name { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 1.05rem; color: var(--ink); line-height: 1.2; }
   .creed-name small { display: block; font-family: 'Source Sans 3', system-ui, sans-serif; font-weight: 600; font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
   .wax-seal { flex-shrink: 0; width: 78px; height: auto; transform: rotate(-6deg); filter: drop-shadow(0 2px 5px rgba(0,0,0,0.30)); }
-  .about-link { background: none; border: none; color: var(--copper); font-family: inherit; font-size: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
+  .about-link { background: none; border: none; color: var(--copper-text); font-family: inherit; font-size: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
   .about-link:hover { color: var(--ink); }
   #quiz-cats { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 16px; }
   .quiz-cat { background: var(--surface2); border: 1px solid var(--border); color: var(--ink); padding: 5px 13px; border-radius: 2px; cursor: pointer; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.8rem; font-weight: 600; transition: all 0.16s; }
   .quiz-cat:hover { background: var(--surface3); border-color: var(--copper-light); }
   .quiz-cat.active { background: var(--copper-light); border-color: var(--copper-light); color: var(--on-copper); }
   .quiz-card { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--copper-light); border-radius: 2px; box-shadow: 1px 2px 8px rgba(50,25,5,0.14); padding: 22px 20px; }
-  .quiz-cat-tag { text-align: center; font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--copper); margin-bottom: 10px; }
+  .quiz-cat-tag { text-align: center; font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--copper-text); margin-bottom: 10px; }
   .quiz-q { font-family: 'Playfair Display', Georgia, serif; font-size: 1.2rem; color: var(--ink); text-align: center; line-height: 1.4; margin-bottom: 18px; }
   #quiz-opts { display: flex; flex-direction: column; gap: 8px; }
   .quiz-opt { background: var(--surface2); border: 1px solid var(--border); color: var(--ink); padding: 11px 15px; border-radius: 2px; cursor: pointer; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 1rem; text-align: left; transition: all 0.15s; }
@@ -584,14 +587,14 @@
   .quiz-explain { margin-top: 14px; font-size: 0.92rem; color: var(--muted); line-height: 1.6; text-align: center; }
   .quiz-next-wrap { text-align: center; margin-top: 16px; }
   #quiz-score { text-align: center; margin-top: 14px; font-size: 0.88rem; color: var(--muted); }
-  .ratio-play { font-size: 0.7rem; color: var(--copper-light); font-style: normal; font-weight: 600; letter-spacing: 0.04em; margin-left: 6px; opacity: 0.85; }
+  .ratio-play { font-size: 0.7rem; color: var(--copper-text); font-style: normal; font-weight: 600; letter-spacing: 0.04em; margin-left: 6px; opacity: 0.85; }
   .ratio-card {
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
     padding: 15px 20px; margin-bottom: 11px; display: flex; gap: 18px; align-items: center;
     box-shadow: 1px 2px 6px rgba(50,25,5,0.14);
   }
   .ratio-number { font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; min-width: 70px; text-align: center; }
-  .ratio-text h4 { font-family: 'Playfair Display', Georgia, serif; font-size: 0.92rem; color: var(--copper-light); margin-bottom: 4px; letter-spacing: 0.06em; font-weight: 600; }
+  .ratio-text h4 { font-family: 'Playfair Display', Georgia, serif; font-size: 0.92rem; color: var(--copper-text); margin-bottom: 4px; letter-spacing: 0.06em; font-weight: 600; }
   .ratio-text p { font-size: 0.92rem; color: var(--ink); line-height: 1.68; }
   .ratio-bar-wrap { margin-top: 7px; height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
   .ratio-bar { height: 100%; border-radius: 2px; animation: barGrow 1s ease forwards; transform-origin: left; }
@@ -876,7 +879,7 @@
     border-radius: 2px; padding: 13px 16px; font-size: 0.94rem; line-height: 1.75;
     color: var(--ink); margin-top: 13px; box-shadow: 1px 2px 5px rgba(50,25,5,0.12);
   }
-  .insight-box strong { color: var(--copper-light); }
+  .insight-box strong { color: var(--copper-text); }
 
   #audio-unlock {
     position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
@@ -891,9 +894,52 @@
     .ratio-card { flex-direction: column; gap: 8px; }
     .ratio-number { min-width: unset; }
   }
+
+  /* ============================================================
+     ACCESSIBILITY  (Assessment Item 6)
+     ============================================================ */
+
+  /* Visible keyboard focus. :focus-visible fires for keyboard and
+     assistive navigation but NOT for mouse clicks, so the ring
+     appears only for the people who need it. */
+  :focus-visible {
+    outline: 3px solid var(--copper);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  .kb-white:focus-visible, .kb-black:focus-visible {
+    outline: 3px solid var(--wax);
+    outline-offset: -3px;
+  }
+
+  /* Respect the system "reduce motion" setting. Panels still change,
+     they just stop sliding and fading. Nothing is taught by the motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+    .ratio-bar { transform: scaleX(1); }
+  }
+
+  /* Screen-reader-only text: present in the accessibility tree, invisible on screen. */
+  .skip-link {
+    position:absolute; left:-9999px; top:0; z-index:200;
+    background: var(--copper); color:#fff; padding:10px 18px;
+    font-family:'Source Sans 3',system-ui,sans-serif; font-weight:600; border-radius:0 0 3px 0;
+  }
+  .skip-link:focus { left:0; }
+
+  .sr-only {
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
 </style>
 </head>
 <body>
+<a href="#panels" class="skip-link">Skip to content</a>
 <div id="bg-parchment"></div>
 
 <!-- Force the app background on any iframe wrapper the Claude app injects -->
@@ -918,7 +964,7 @@
     <p class="subtitle">Music as the Signal of the universe made audible</p>
   </header>
 
-  <div id="nav">
+  <nav id="nav" aria-label="Sections">
     <button class="nav-btn active" onclick="showPanel('cof')"><span class="nav-full">Circle of Fifths</span><span class="nav-short">Circle</span></button>
     <button class="nav-btn" onclick="showPanel('diatonic')"><span class="nav-full">Keys & Chords</span><span class="nav-short">Chords</span></button>
     <button class="nav-btn" onclick="showPanel('modes')"><span class="nav-full">The Modes</span><span class="nav-short">Modes</span></button>
@@ -928,7 +974,9 @@
     <button class="nav-btn" onclick="showPanel('history')"><span class="nav-full">History</span><span class="nav-short">History</span></button>
     <button class="nav-btn" onclick="showPanel('quiz')"><span class="nav-full">Quiz</span><span class="nav-short">Quiz</span></button>
     <button class="nav-btn" id="nav-about" onclick="showPanel('about')"><span class="nav-full">About</span><span class="nav-short">About</span></button>
-  </div>
+  </nav>
+
+  <main id="panels" tabindex="-1">
 
   <!-- CIRCLE OF FIFTHS -->
   <div id="cof-panel" class="panel active">
@@ -999,7 +1047,7 @@
         <h3>Chord Quality</h3>
         <div class="btn-grid" id="quality-btns"></div>
         <div style="margin-top:15px;padding-top:13px;border-top:1px dashed var(--border);font-size:0.82rem;color:var(--muted);line-height:1.62;">
-          <strong style="color:var(--copper-light);font-weight:600">Inversions</strong> — the same chord re-stacked so a different chord tone sits on the bottom. Root position keeps the <span style="color:var(--root);font-weight:600">root</span> lowest; 1st inversion puts the third on the bottom, 2nd inversion the fifth. The notes and the name don't change — only which one carries the weight. You can spot one above: when a chord won't stack inside a single octave, the <span style="color:var(--root);font-weight:600">red root</span> isn't the lowest lit key.
+          <strong style="color: var(--copper-text);font-weight:600">Inversions</strong> — the same chord re-stacked so a different chord tone sits on the bottom. Root position keeps the <span style="color:var(--root);font-weight:600">root</span> lowest; 1st inversion puts the third on the bottom, 2nd inversion the fifth. The notes and the name don't change — only which one carries the weight. You can spot one above: when a chord won't stack inside a single octave, the <span style="color:var(--root);font-weight:600">red root</span> isn't the lowest lit key.
         </div>
       </div>
 
@@ -1453,7 +1501,7 @@
         </div>
         <div id="m3-readout" class="jz-readout"></div>
         <p class="jazz-lede" style="font-size:0.86rem;margin:14px auto 0;">
-          New to Dorian, Mixolydian and Ionian? <a href="#" onclick="NS.jazz.toModes();return false;" style="color:var(--copper);font-weight:600;">Visit The Modes panel</a> for the full tour.
+          New to Dorian, Mixolydian and Ionian? <a href="#" onclick="NS.jazz.toModes();return false;" style="color: var(--copper-text);font-weight:600;">Visit The Modes panel</a> for the full tour.
         </p>
       </div>
 
@@ -1642,6 +1690,7 @@
     <p style="text-align:center;margin:0;font-size:0.84rem;color:var(--ink-soft);">Created by Matthew Curran with the use of Artificial Intelligence. <button class="about-link" onclick="goAbout()">How this guide was made &amp; who made it →</button></p>
   </div>
 
+</main>
 </div><!-- end #app -->
 
 <script>
@@ -2055,7 +2104,13 @@ function showPanel(id) {
   if (panel) panel.classList.add('active');
   // Highlight the matching nav button deterministically — no reliance on the global `event`.
   document.querySelectorAll('#nav .nav-btn').forEach(function(b){
-    if ((b.getAttribute('onclick') || '').indexOf("showPanel('" + id + "')") !== -1) b.classList.add('active');
+    var isActive = (b.getAttribute('onclick') || '').indexOf("showPanel('" + id + "')") !== -1;
+    if (isActive) b.classList.add('active');
+    // Tell assistive tech which section is showing. These are real <button>s, not
+    // an ARIA tab widget: Tab and Enter already work, and claiming role="tab"
+    // would promise arrow-key navigation the app does not implement.
+    if (isActive) b.setAttribute('aria-current', 'true');
+    else b.removeAttribute('aria-current');
   });
 
   // Build panel content the first time it becomes visible (About is static — no builder).
@@ -2273,7 +2328,7 @@ function buildCOF() {
         ${combined.map(pillFor).join('')}
       </div>
       <div style="font-size:0.88rem;color:var(--muted);margin-top:6px;font-style:italic">
-        Same seven notes — ${key} Major reads from <strong style="color:var(--root)">${majorNotes[0]}</strong>, ${COF_MINOR[idx]} reads from <strong style="color:var(--copper-light)">${minorNotes[0]}</strong>.
+        Same seven notes — ${key} Major reads from <strong style="color:var(--root)">${majorNotes[0]}</strong>, ${COF_MINOR[idx]} reads from <strong style="color: var(--copper-text)">${minorNotes[0]}</strong>.
       </div>
     `;
   }
@@ -2325,7 +2380,7 @@ function buildDiatonicForRoot(pc) {
       nm.innerHTML =
         `<div style="font-size:0.9rem;font-style:italic;color:var(--muted);font-family:'Source Sans 3',system-ui,sans-serif;margin-bottom:3px">Key of ${keyLabel(pc)}</div>` +
         `${numeral} · ${chordRoot}${suffix} <span style="font-size:1rem;color:var(--ink-soft)">${qualWord} triad</span>`;
-      nm.style.color = '#a85c32';
+      nm.style.color = 'var(--copper-text)';
       document.getElementById('chord-notes-display').innerHTML =
         notes.map((n,i) => `<span class="note-pill ${i===0?'root':''}">${n}</span>`).join(' ');
       document.getElementById('chord-formula').textContent = 'Notes listed from the root up';
@@ -2336,7 +2391,7 @@ function buildDiatonicForRoot(pc) {
   });
 
   document.getElementById('diatonic-insight').innerHTML =
-    `<strong style="color:var(--copper-light)">The seven chords of ${key} Major</strong> — one chord on each scale degree, every one a different feeling drawn from the same seven notes.`;
+    `<strong style="color: var(--copper-text)">The seven chords of ${key} Major</strong> — one chord on each scale degree, every one a different feeling drawn from the same seven notes.`;
 }
 
 function showDiatInsight(deg, root, quality, notes, key, noteIdx) {
@@ -2353,7 +2408,7 @@ function showDiatInsight(deg, root, quality, notes, key, noteIdx) {
     'The <strong>leading-tone chord</strong> — diminished and restless. It almost always speaks for the dominant, and hands the phrase back to the tonic.'
   ];
   document.getElementById('diatonic-insight').innerHTML = `
-    <strong style="color:var(--copper-light)">${numeral} · ${root}${quality==='minor'?'m':quality==='dim'?'°':''}</strong>
+    <strong style="color: var(--copper-text)">${numeral} · ${root}${quality==='minor'?'m':quality==='dim'?'°':''}</strong>
     <span style="color:var(--muted);margin-left:8px">Notes: ${notes.join(' · ')}</span>
     <div style="margin-top:8px">${functions[deg]}</div>
     <div style="margin-top:8px;color:var(--muted)">Its natural mode is <em style="color:${mode.color}">${mode.name}</em> — ${mode.feel.split('. ')[0].replace(/\.$/,'')}.</div>
@@ -2487,6 +2542,23 @@ function playModeScale(degree) {
 //  The same chromatic instrument used by the Chord Builder and
 //  the Interval Explorer, so both reference the one keyboard.
 // ============================================================
+// The keyboard is the product's spine, so it has to be operable without a mouse.
+// Each key becomes a real button in the accessibility tree: focusable, named by the
+// note it sounds, and triggered by Enter or Space like any other button.
+const BLACK_KEY_NAMES = {1:'C sharp, D flat', 3:'D sharp, E flat', 6:'F sharp, G flat',
+                         8:'G sharp, A flat', 10:'A sharp, B flat'};
+function nsMakeKeyAccessible(el, name, semi, onKey) {
+  el.setAttribute('role', 'button');
+  el.setAttribute('tabindex', '0');
+  el.setAttribute('aria-label', name + (semi === 12 ? ', octave above' : ''));
+  el.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();
+      onKey(semi);
+    }
+  });
+}
+
 function buildKeyboard(mount, onKey) {
   mount.innerHTML = '';
   const whites = [0,2,4,5,7,9,11,12];
@@ -2498,6 +2570,7 @@ function buildKeyboard(mount, onKey) {
     w.dataset.semi = s;
     w.textContent = whiteNames[i];
     w.onclick = function() { onKey(s); };
+    nsMakeKeyAccessible(w, whiteNames[i], s, onKey);
     mount.appendChild(w);
   });
   blacks.forEach(function(b) {
@@ -2506,6 +2579,7 @@ function buildKeyboard(mount, onKey) {
     k.dataset.semi = b.s;
     k.style.left = (b.x * 12.5 - 3.6) + '%';
     k.onclick = function() { onKey(b.s); };
+    nsMakeKeyAccessible(k, BLACK_KEY_NAMES[b.s], b.s, onKey);
     mount.appendChild(k);
   });
   return {
@@ -2737,7 +2811,7 @@ function kcBuildChord() {
   const notes = q.intervals.map(iv => spell(kcTonic + iv, kcTonic));
   const nameEl = document.getElementById('chord-name-display');
   nameEl.textContent = spell(kcTonic, kcTonic) + q.symbol;
-  nameEl.style.color = '#a85c32';
+  nameEl.style.color = 'var(--copper-text)';
   document.getElementById('chord-notes-display').innerHTML =
     notes.map((n,i) => `<span class="note-pill ${i===0?'root':''}">${n}</span>`).join(' ');
   document.getElementById('chord-formula').textContent = `${q.formula}   ·   ${q.feel}`;
@@ -2750,6 +2824,27 @@ function kcBuildChord() {
 }
 
 nsSafeRun(kcInit, 'Keys & Chords keyboard');
+
+// ---- Accessibility wiring (Assessment Item 6) ----------------------------
+// Each panel becomes a named region a screen-reader user can jump straight to,
+// and the readouts that change on click are marked live, so a blind user hears
+// the result of pressing a key instead of silence.
+nsSafeRun(function () {
+  var PANEL_NAMES = {
+    'cof-panel':'Circle of Fifths', 'diatonic-panel':'Keys and Chords',
+    'modes-panel':'The Modes', 'intervals-panel':'Ear Training',
+    'jazz-panel':'Jazz', 'ratios-panel':'Mathematics',
+    'history-panel':'History', 'quiz-panel':'Quiz', 'about-panel':'About'
+  };
+  Object.keys(PANEL_NAMES).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) { el.setAttribute('role', 'region'); el.setAttribute('aria-label', PANEL_NAMES[id]); }
+  });
+  ['chord-result', 'iv-readout', 'cof-info', 'mode-info', 'ear-score'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) { el.setAttribute('aria-live', 'polite'); el.setAttribute('aria-atomic', 'true'); }
+  });
+}, 'Accessibility wiring');
 
 function replayChord() {
   if (window._lastChordRoot !== undefined && window._lastChordIntervals) {
@@ -3871,5 +3966,11 @@ NS.m7 = (function(){
 })();
 NS.jazz.register({ id:'m7', n:'Time and Feel', blurb:'Straight vs swing — where the off-beat sits', init:function(){ NS.m7.init(); } });
 </script>
+
+<!-- Cloudflare Web Analytics — free, cookieless, no consent banner required.
+     Loads after the page (type=module is deferred), fails silently offline,
+     and sets no cookies, so it does not change the privacy posture. -->
+<script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c9e32ca649604807a51cc675378aebc0"}'></script>
+<!-- End Cloudflare Web Analytics -->
 </body>
 </html>
