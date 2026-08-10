@@ -448,7 +448,23 @@
   .mode-btn.active { background: var(--copper-light); border-color: var(--copper-light); color: var(--on-copper); }
 
   .iv-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 16px; }
-  .iv-chip {
+  /* The thirteen interval chips used to wrap freely, which orphaned "Octave"
+     alone on a row at several widths (4+4+4+1 was the common one). Thirteen is
+     prime, so no column count divides it and no flex trick can help. The fix is
+     musical rather than arithmetic: UNISON IS NOT A DISTANCE, it is the reference
+     the distances are measured from. Lift it onto its own centred row and exactly
+     twelve remain, and twelve divides evenly by 6, 4 and 3, so the grid below can
+     step down through every screen size without ever stranding a chip. Twelve is
+     also the number of semitones in the octave shown on the keyboard beneath it.
+     Scoped to #iv-list so the Chord Quality lesson's four chips stay untouched. */
+  #iv-list { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  #iv-list .iv-chip { text-align: center; }
+  #iv-list .iv-chip[data-semi="0"] { grid-column: 1 / -1; justify-self: center; min-width: 140px; }
+  @media (max-width: 1000px) { #iv-list { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 620px)  { #iv-list { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 430px)  {
+    #iv-list .iv-chip { padding: 8px 4px; font-size: 0.74rem; line-height: 1.25; }
+  }  .iv-chip {
     background: var(--surface2); border: 1px solid var(--border); color: var(--ink);
     border-radius: 2px; padding: 6px 11px; font-family: 'Source Sans 3', system-ui, sans-serif;
     font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.16s;
@@ -571,6 +587,17 @@
   .about-link { background: none; border: none; color: var(--copper-text); font-family: inherit; font-size: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
   .about-link:hover { color: var(--ink); }
   #quiz-cats { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 16px; }
+  /* PHONE: the six categories were wrapping five-and-one, orphaning History.
+     Same cure as the main nav: give each button a fixed share of the row so
+     they break evenly. A third each yields a balanced three over three. Six
+     across is not an option; "Keys & Scales" will not survive a 60px box. */
+  @media (max-width: 430px) {
+    .quiz-cat {
+      flex: 1 1 calc(33.333% - 6px);
+      max-width: calc(33.333% - 6px);
+      padding: 7px 4px; font-size: 0.72rem; line-height: 1.25;
+    }
+  }
   .quiz-cat { background: var(--surface2); border: 1px solid var(--border); color: var(--ink); padding: 5px 13px; border-radius: 2px; cursor: pointer; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.8rem; font-weight: 600; transition: all 0.16s; }
   .quiz-cat:hover { background: var(--surface3); border-color: var(--copper-light); }
   .quiz-cat.active { background: var(--copper-light); border-color: var(--copper-light); color: var(--on-copper); }
@@ -1747,14 +1774,47 @@
 // ============================================================
 //  DATA
 // ============================================================
-const NOTES = ['C','C♯/D♭','D','D♯/E♭','E','F','F♯/G♭','G','G♯/A♭','A','A♯/B♭','B'];
-const NOTES_SIMPLE = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
-const NOTES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+/* ================================================================
+   ONE SOURCE OF TRUTH: pitch names, key signatures, triad shapes.
+   (Assessment Item 9, consolidated 2026-08-09)
+   Everything below this block is DERIVED from it. Change a fact here
+   and every panel changes with it. These same facts used to be typed
+   out in up to five parallel tables, which is exactly how a note ends
+   up spelled one way in the Circle and another way in Keys & Chords.
+   ================================================================ */
+
+// The twelve pitch classes, spelled both ways. The root table.
+const SPELL_SHARP = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const SPELL_FLAT  = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+const IS_BLACK_PC = function(pc){ return SPELL_SHARP[pc].length > 1; };
+
+// The circle of fifths as pitch classes: C G D A E B F# Db Ab Eb Bb F.
+// Position in this array IS the key signature: 0 to 6 sharps going up,
+// then 5 back down to 1 flat. No other table needs to know the counts.
+const CIRCLE_PCS  = [0,7,2,9,4,11,6,1,8,3,10,5];
+const SHARP_ORDER = ['F♯','C♯','G♯','D♯','A♯','E♯','B♯'];
+const FLAT_ORDER  = ['B♭','E♭','A♭','D♭','G♭','C♭','F♭'];
+const sigCount = function(i){ return i <= 6 ? {sharps:i, flats:0} : {sharps:0, flats:12-i}; };
+
+// Triad shapes in semitones. Frozen, because they are shared by reference
+// across the chord builder, the diatonic grid and the ear-training drill.
+// Previously written out four separate times, twice as an inline ternary.
+const TRIAD_SEMIS = Object.freeze({
+  major: Object.freeze([0,4,7]),
+  minor: Object.freeze([0,3,7]),
+  dim:   Object.freeze([0,3,6]),
+  aug:   Object.freeze([0,4,8])
+});
+
+// ---- derived: display spellings -------------------------------------
+const NOTES        = SPELL_SHARP.map(function(n,pc){ return IS_BLACK_PC(pc) ? n + '/' + SPELL_FLAT[pc] : n; });
+const NOTES_SIMPLE = SPELL_FLAT.map(function(n){ return n.replace('♭','b'); });
+const NOTES_SHARP  = SPELL_SHARP.map(function(n){ return n.replace('♯','#'); });
 
 // Circle of fifths order (major keys starting at C)
 const COF_MAJOR = ['C','G','D','A','E','B','F♯/G♭','D♭','A♭','E♭','B♭','F'];
 const COF_MINOR = ['Am','Em','Bm','F♯m','C♯m','G♯m','D♯m/E♭m','B♭m','Fm','Cm','Gm','Dm'];
-const SHARPS_FLATS = ['0♯','1♯','2♯','3♯','4♯','5♯','6♯/6♭','5♭','4♭','3♭','2♭','1♭'];
+const SHARPS_FLATS = CIRCLE_PCS.map(function(pc,i){ return i===6 ? '6♯/6♭' : (i<6 ? i+'♯' : (12-i)+'♭'); });
 
 const MAJOR_SCALE = [0,2,4,5,7,9,11]; // semitone intervals from root
 const MINOR_SCALE = [0,2,3,5,7,8,10];
@@ -1793,13 +1853,13 @@ const KEY_COLORS_MINOR = Array.from({ length: 12 }, (_, i) => hslToHex((COF_HUE_
 
 // Chord qualities
 const CHORD_QUALITIES = [
-  { name: 'Major', symbol: '', intervals: [0,4,7], formula: 'Root + Major 3rd + Perfect 5th', feel: 'Solid ground — the chord all the others are measured against' },
-  { name: 'Minor', symbol: 'm', intervals: [0,3,7], formula: 'Root + Minor 3rd + Perfect 5th', feel: 'The third drops a semitone and the light goes with it' },
+  { name: 'Major', symbol: '', intervals: TRIAD_SEMIS.major, formula: 'Root + Major 3rd + Perfect 5th', feel: 'Solid ground — the chord all the others are measured against' },
+  { name: 'Minor', symbol: 'm', intervals: TRIAD_SEMIS.minor, formula: 'Root + Minor 3rd + Perfect 5th', feel: 'The third drops a semitone and the light goes with it' },
   { name: 'Dominant 7th', symbol: '7', intervals: [0,4,7,10], formula: 'Root + Maj3 + P5 + min7', feel: 'A tritone hides between its 3rd and 7th — hence the pull home' },
   { name: 'Major 7th', symbol: 'maj7', intervals: [0,4,7,11], formula: 'Root + Maj3 + P5 + Maj7', feel: 'Tension worn lightly — a half-step shy of home and content to stay' },
   { name: 'Minor 7th', symbol: 'm7', intervals: [0,3,7,10], formula: 'Root + min3 + P5 + min7', feel: 'A minor triad with the edge taken off; jazz\'s everyday chord' },
-  { name: 'Diminished', symbol: '°', intervals: [0,3,6], formula: 'Root + min3 + Diminished 5th', feel: 'No anchor anywhere — it can resolve in almost any direction' },
-  { name: 'Augmented', symbol: '+', intervals: [0,4,8], formula: 'Root + Maj3 + Augmented 5th', feel: 'Splits the octave into three equal thirds, so the ear can\'t find the floor' },
+  { name: 'Diminished', symbol: '°', intervals: TRIAD_SEMIS.dim, formula: 'Root + min3 + Diminished 5th', feel: 'No anchor anywhere — it can resolve in almost any direction' },
+  { name: 'Augmented', symbol: '+', intervals: TRIAD_SEMIS.aug, formula: 'Root + Maj3 + Augmented 5th', feel: 'Splits the octave into three equal thirds, so the ear can\'t find the floor' },
   { name: 'Sus2', symbol: 'sus2', intervals: [0,2,7], formula: 'Root + Major 2nd + P5', feel: 'No third at all — neither major nor minor, just open' },
   { name: 'Sus4', symbol: 'sus4', intervals: [0,5,7], formula: 'Root + Perfect 4th + P5', feel: 'The 4th stands where the third belongs, and the ear wants it to step down' },
   { name: 'Minor maj7', symbol: 'm(maj7)', intervals: [0,3,7,11], formula: 'Root + min3 + P5 + Maj7', feel: 'Two moods at once — the sting at the end of the James Bond theme' },
@@ -2046,7 +2106,7 @@ function playChordFromBuilder(rootSemitone, intervals) {
 }
 
 function playDiatonicChord(noteIdx, quality) {
-  var intervals = quality === 'major' ? [0,4,7] : quality === 'minor' ? [0,3,7] : [0,3,6];
+  var intervals = TRIAD_SEMIS[quality] || TRIAD_SEMIS.dim;
   playChordFromBuilder(noteIdx, intervals);  // voiced to match the keys (incl. inversions)
 }
 
@@ -2371,7 +2431,7 @@ function buildDiatonicForRoot(pc) {
     const quality = DIATONIC_QUALITIES[degreeIdx];
     const numeral = DIATONIC_NUMERALS[degreeIdx];
     const chordRoot = spell(noteIdx, pc);
-    const intervals = quality === 'major' ? [0,4,7] : quality === 'minor' ? [0,3,7] : [0,3,6];
+    const intervals = TRIAD_SEMIS[quality] || TRIAD_SEMIS.dim;
     const notes = intervals.map(i => spell(noteIdx + i, pc));
     const qualClass = quality === 'major' ? 'major-q' : quality === 'minor' ? 'minor-q' : 'dim-q';
 
@@ -2557,8 +2617,10 @@ function playModeScale(degree) {
 // The keyboard is the product's spine, so it has to be operable without a mouse.
 // Each key becomes a real button in the accessibility tree: focusable, named by the
 // note it sounds, and triggered by Enter or Space like any other button.
-const BLACK_KEY_NAMES = {1:'C sharp, D flat', 3:'D sharp, E flat', 6:'F sharp, G flat',
-                         8:'G sharp, A flat', 10:'A sharp, B flat'};
+// Derived: the screen-reader name of each black key, spoken both ways.
+const BLACK_KEY_NAMES = Object.fromEntries([1,3,6,8,10].map(function(pc){
+  return [pc, SPELL_SHARP[pc].replace('♯',' sharp') + ', ' + SPELL_FLAT[pc].replace('♭',' flat')];
+}));
 function nsMakeKeyAccessible(el, name, semi, onKey) {
   el.setAttribute('role', 'button');
   el.setAttribute('tabindex', '0');
@@ -2710,19 +2772,33 @@ function clickAt(t) {
 //  Diatonic chips and quality buttons each light the same keyboard —
 //  one at a time.
 // ============================================================
-const PC_TO_KEY = {0:'C',1:'Db',2:'D',3:'Eb',4:'E',5:'F',6:'F#',7:'G',8:'Ab',9:'A',10:'Bb',11:'B'};
+// Derived: ASCII key names. Flat spellings throughout, except pitch-class 6,
+// which the app names F# (six sharps) rather than Gb (six flats).
+const PC_TO_KEY = SPELL_FLAT.map(function(n,pc){
+  return (pc===6 ? SPELL_SHARP[6] : n).replace('♭','b').replace('♯','#');
+});
 // Key signature (count of sharps/flats) by tonic pitch-class, for major keys.
-const PC_TO_SIG = {0:'no sharps or flats',7:'1♯',2:'2♯',9:'3♯',4:'4♯',11:'5♯',6:'6♯ / 6♭',1:'5♭',8:'4♭',3:'3♭',10:'2♭',5:'1♭'};
+// Derived: how many sharps or flats each key carries, in words.
+const PC_TO_SIG = Object.fromEntries(CIRCLE_PCS.map(function(pc,i){
+  return [pc, i===0 ? 'no sharps or flats'
+            : i===6 ? '6♯ / 6♭'
+            : (i<6 ? i+'♯' : (12-i)+'♭')];
+}));
 // The actual accidentals in each major key, in standard order (sharps F C G D A E B; flats B E A D G C F).
-const PC_TO_ACC = {0:'no sharps or flats',7:'F♯',2:'F♯, C♯',9:'F♯, C♯, G♯',4:'F♯, C♯, G♯, D♯',11:'F♯, C♯, G♯, D♯, A♯',6:'F♯, C♯, G♯, D♯, A♯, E♯',5:'B♭',10:'B♭, E♭',3:'B♭, E♭, A♭',8:'B♭, E♭, A♭, D♭',1:'B♭, E♭, A♭, D♭, G♭'};
+// Derived: the actual accidentals, taken in standard order off the top of
+// SHARP_ORDER / FLAT_ORDER. This was a third hand-typed signature table.
+const PC_TO_ACC = Object.fromEntries(CIRCLE_PCS.map(function(pc,i){
+  var c = sigCount(i);
+  return [pc, c.sharps ? SHARP_ORDER.slice(0,c.sharps).join(', ')
+            : c.flats  ? FLAT_ORDER.slice(0,c.flats).join(', ')
+            : 'no sharps or flats'];
+}));
 function keyLabel(pc) { return PC_TO_KEY[pc] + ' Major · ' + PC_TO_ACC[pc]; }
 
 // Key-aware spelling: sharp keys use sharps, flat keys use flats, so a note is
 // spelled one consistent way inside a given key (no "C♯/D♭" hedging, no C♯-vs-D♭
 // clash between a chord's name and its notes). Pass the key's pitch-class as keyPc.
-const SPELL_SHARP = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-const SPELL_FLAT  = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
-const SHARP_KEYS = new Set([0,7,2,9,4,11,6]); // C G D A E B F#
+const SHARP_KEYS = new Set(CIRCLE_PCS.slice(0,7)); // derived: C G D A E B F♯
 
 // Letter-name-aware spelling. A major scale uses each letter A–G exactly once, so
 // every diatonic note sits on its proper letter (F♯ major's 7th is E♯, never F;
@@ -2939,8 +3015,8 @@ function ivKeyClick(semi) {
 function ivShow(semi) {
   var iv = INTERVALS[semi];
   ivKB.reset();
-  ivKB.light(0, true);                     // root C
-  if (semi !== 0) ivKB.light(semi, false); // the interval's top note
+  ivKB.lightExact(0, true);                     // root C — the LOW one only
+  if (semi !== 0) ivKB.lightExact(semi, false); // the top note, that exact key
   ivClearChips();
   ivMarkChip(semi, 'active');
   playInterval(ROOT_MIDI, ROOT_MIDI + semi);
@@ -2982,8 +3058,8 @@ function earGuess(semi) {
   var answer = earCurrentInterval.semitones;
 
   ivKB.reset();
-  ivKB.light(0, true);            // reveal: root C
-  ivKB.light(answer, false);      // reveal: the correct interval's top note
+  ivKB.lightExact(0, true);            // reveal: root C — the LOW one only
+  ivKB.lightExact(answer, false);      // reveal: the top note, that exact key
   ivClearChips();
   ivMarkChip(answer, 'correct');
   if (semi !== answer) ivMarkChip(semi, 'wrong');
@@ -3024,10 +3100,10 @@ var cqCurrent = null, cqAnswered = false, cqScore = 0, cqTotal = 0, cqStreak = 0
 // All rooted on C so they fit one octave (C..C) and stay parallel with the interval trainer.
 // Color encodes feel: copper = bright/major, wax-red = minor, root-red = tense/diminished, gold = dreamlike/augmented.
 var TRIAD_QUALITIES = [
-  {name:'Major',      abbr:'maj', semis:[0,4,7], formula:'root · major 3rd · perfect 5th',        feel:'bright, stable, resolved',              color:'var(--copper)'},
-  {name:'Minor',      abbr:'m',   semis:[0,3,7], formula:'root · minor 3rd · perfect 5th',        feel:'darker, softer, more pensive',          color:'var(--wax)'},
-  {name:'Diminished', abbr:'dim', semis:[0,3,6], formula:'root · minor 3rd · diminished 5th',     feel:'tense and unstable — wants to resolve', color:'var(--root)'},
-  {name:'Augmented',  abbr:'aug', semis:[0,4,8], formula:'root · major 3rd · augmented 5th',      feel:'restless, dreamlike, unresolved',       color:'var(--gold)'}
+  {name:'Major',      abbr:'maj', semis:TRIAD_SEMIS.major, formula:'root · major 3rd · perfect 5th',        feel:'bright, stable, resolved',              color:'var(--copper)'},
+  {name:'Minor',      abbr:'m',   semis:TRIAD_SEMIS.minor, formula:'root · minor 3rd · perfect 5th',        feel:'darker, softer, more pensive',          color:'var(--wax)'},
+  {name:'Diminished', abbr:'dim', semis:TRIAD_SEMIS.dim, formula:'root · minor 3rd · diminished 5th',     feel:'tense and unstable — wants to resolve', color:'var(--root)'},
+  {name:'Augmented',  abbr:'aug', semis:TRIAD_SEMIS.aug, formula:'root · major 3rd · augmented 5th',      feel:'restless, dreamlike, unresolved',       color:'var(--gold)'}
 ];
 
 function cqBuild(){
