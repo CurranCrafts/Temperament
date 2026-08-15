@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nature's Signal</title>
+<title>Temperament</title>
 <style>
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -167,10 +167,16 @@
   #cof-info {
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
     box-shadow: 2px 3px 10px rgba(50,25,5,0.2);
-    padding: 18px 24px; max-width: 580px; width: 100%; min-height: 130px; text-align: center;
+    padding: 18px 24px; max-width: 580px; width: 100%; text-align: center;
   }
   #cof-key-name { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; color: var(--ink); margin-bottom: 6px; }
   #cof-details { color: var(--ink); font-size: 0.98rem; line-height: 1.75; }
+
+  /* COF stage (Build 15): the wheel picks a key, this shows what it means on the
+     spine — same keyboard-grammar layout as Keys & Chords / The Modes. */
+  .cof-stage { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; justify-content: center; width: 100%; max-width: 720px; }
+  .cof-stage-kb { flex: 1 1 380px; min-width: 280px; }
+  .cof-stage #cof-info { flex: 1 1 260px; margin: 0; }
 
   .note-pill {
     display: inline-block; background: var(--surface2); border: 1px solid var(--border);
@@ -328,9 +334,12 @@
   #jazz-panel .kb-black.blue-lit  { background-image: radial-gradient(circle 4px at 50% 24%, var(--tone), var(--tone) 4px, transparent 5px); }
   #jazz-panel .kb-white.scale-lit { background-image: radial-gradient(circle 5px at 50% 16%, var(--scale-dot), var(--scale-dot) 5px, transparent 6px); }
   #jazz-panel .kb-black.scale-lit { background-image: radial-gradient(circle 4px at 50% 24%, #d8c79f, #d8c79f 4px, transparent 5px); }
-  /* L5/L6 physical key-press feedback */
-  #jazz-panel .kb-white.pressed { transform: translateY(4px); box-shadow: 0 0 0 2px var(--copper-light), 0 8px 16px 2px rgba(168,92,50,0.5); filter: brightness(1.12); z-index: 1; }
-  #jazz-panel .kb-black.pressed { transform: translateY(3px); box-shadow: 0 0 0 2px var(--copper-light), 0 8px 16px 2px rgba(168,92,50,0.6); filter: brightness(1.4); z-index: 5; }
+  /* Physical key-press feedback — shared across every panel that uses the keyboard's
+     pressExact() (Jazz lessons, Circle of Fifths, Modes). Was scoped to #jazz-panel
+     only, a leftover from when Jazz was the only caller; that silently broke the
+     traveling-light animation everywhere else once other panels adopted pressExact. */
+  .kb-white.pressed { transform: translateY(4px); box-shadow: 0 0 0 2px var(--copper-light), 0 8px 16px 2px rgba(168,92,50,0.5); filter: brightness(1.12); z-index: 1; }
+  .kb-black.pressed { transform: translateY(3px); box-shadow: 0 0 0 2px var(--copper-light), 0 8px 16px 2px rgba(168,92,50,0.6); filter: brightness(1.4); z-index: 5; }
 
   /* ── Legend swatches (union across lessons) ── */
   #jazz-panel .lg-tone { background: var(--tone); border: 1px solid #b07f1e; }
@@ -999,8 +1008,8 @@
 
 <div id="app">
   <header>
-    <h1><span class="h1-flourish">✦</span>Nature's Signal<span class="h1-flourish">✦</span></h1>
-    <p class="subtitle">Music as the Signal of the universe made audible</p>
+    <h1><span class="h1-flourish">✦</span>Temperament<span class="h1-flourish">✦</span></h1>
+    <p class="subtitle">The Nature of Western Music Theory</p>
   </header>
 
   <nav id="nav" aria-label="Sections">
@@ -1024,11 +1033,20 @@
       <div id="cof-wrap">
         <svg id="cof-svg" viewBox="-24 -24 548 548" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
-      <div id="cof-info">
-        <div id="cof-key-name" style="color:var(--muted);font-size:1.05rem;font-family:'Source Sans 3',system-ui,sans-serif;font-style:italic;">
-          Select a key on the wheel to explore it
+      <div class="cof-stage">
+        <div class="cof-stage-kb">
+          <div class="kb-wrap"><div id="cof-keyboard" class="keyboard"></div></div>
+          <div class="mode-kb-legend">
+            <span><i class="lg-home"></i> home note (tonic)</span>
+            <span><i class="lg-in"></i> note in the key</span>
+          </div>
         </div>
-        <div id="cof-details"></div>
+        <div id="cof-info">
+          <div id="cof-key-name" style="color:var(--muted);font-size:1.05rem;font-family:'Source Sans 3',system-ui,sans-serif;font-style:italic;">
+            Select a key on the wheel to explore it
+          </div>
+          <div id="cof-details"></div>
+        </div>
       </div>
       <div class="modes-intro" style="max-width:640px;margin:0 auto;">
         Western music can sound like pure human invention. Much of its architecture isn't — it was discovered, not designed: a handful of simple ratios, twelve notes, an order already waiting in the physics of sound. The circle of fifths is where that order first becomes visible. Arrange the twelve keys so each sits a perfect fifth from the last, and the chain closes into a loop, landing home exactly where it began.
@@ -2165,11 +2183,46 @@ var EAR_POOL = null; // populated after INTERVALS defined
 
 
 // ============================================================
+//  PERSISTENCE — remember the student's place (Item 8, 2026-08-15)
+//  localStorage only: last panel visited + quiz score/category/seen-set.
+//  No server, no accounts. Wrapped in try/catch because Safari private
+//  browsing (and some locked-down webviews) throws on access rather than
+//  quietly no-opping — a student in that state should just get no memory,
+//  never a blank app.
+// ============================================================
+const NS_STORE_PANEL = 'temperament_last_panel';
+const NS_STORE_QUIZ = 'temperament_quiz_state';
+
+function nsStorageGet(key) {
+  try { return window.localStorage.getItem(key); } catch (e) { return null; }
+}
+function nsStorageSet(key, val) {
+  try { window.localStorage.setItem(key, val); } catch (e) { /* storage unavailable — fail silent */ }
+}
+function saveLastPanel(id) {
+  nsStorageSet(NS_STORE_PANEL, id);
+}
+function saveQuizState() {
+  nsStorageSet(NS_STORE_QUIZ, JSON.stringify({
+    cat: quizCat, score: quizScore, total: quizTotal, seen: Array.from(quizSeen)
+  }));
+}
+function loadQuizState() {
+  const raw = nsStorageGet(NS_STORE_QUIZ);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === 'object') ? parsed : null;
+  } catch (e) { return null; }
+}
+
+// ============================================================
 //  NAV — lazy panel init
 // ============================================================
 const panelBuilt = {};
 
 function showPanel(id) {
+  saveLastPanel(id);
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   var panel = document.getElementById(id + '-panel');
@@ -2202,6 +2255,7 @@ function showPanel(id) {
 
 // Jump to the About panel from the footer link (robust: doesn't rely on a click event)
 function goAbout(){
+  saveLastPanel('about');
   document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
   var p = document.getElementById('about-panel'); if (p) p.classList.add('active');
@@ -2215,11 +2269,22 @@ window.addEventListener('load', function() {
   panelBuilt['diatonic'] = true;
   setTimeout(function(){ nsSafeRun(buildCOF, 'Circle of Fifths'); }, 80);
   setTimeout(function(){ nsSafeRun(function(){ buildDiatonic('C'); }, 'Keys & Chords'); }, 80);
+  // Returning student: reopen the panel they were last on, if it still exists.
+  // Skipped when the saved panel is already 'cof' (the default) or unrecognized.
+  var lastPanel = nsStorageGet(NS_STORE_PANEL);
+  if (lastPanel && lastPanel !== 'cof' && document.getElementById(lastPanel + '-panel')) {
+    setTimeout(function(){ nsSafeRun(function(){ showPanel(lastPanel); }, 'Restore last panel'); }, 90);
+  }
 });
 
 // ============================================================
 //  CIRCLE OF FIFTHS
 // ============================================================
+let cofKB = null;
+// Pending key-light timers for the current scale playback, so a fast second click
+// can't leave a stray light firing late on the wrong (now-deselected) key.
+let cofPlayTimers = [];
+function cofClearTimers() { cofPlayTimers.forEach(clearTimeout); cofPlayTimers = []; }
 function buildCOF() {
   const svg = document.getElementById('cof-svg');
   if (!svg || svg.children.length > 1) return; // already built
@@ -2257,19 +2322,26 @@ function buildCOF() {
   core.setAttribute('stroke', 'rgba(120,95,55,0.30)'); core.setAttribute('stroke-width', '1');
   svg.appendChild(core);
 
+  // Build 16 (2026-08-15): the wheel's own name was nearly invisible — 50% and 38%
+  // opacity on a light background is well under readable contrast. Solid --ink at
+  // full opacity, sized up, so the label reads instead of just implying its shape.
   const coreText = document.createElementNS('http://www.w3.org/2000/svg','text');
-  coreText.setAttribute('x', cx); coreText.setAttribute('y', cy + 5);
+  coreText.setAttribute('x', cx); coreText.setAttribute('y', cy + 2);
   coreText.setAttribute('text-anchor','middle');
-  coreText.setAttribute('fill','rgba(70,55,40,0.5)');
-  coreText.setAttribute('font-size','11');
+  coreText.setAttribute('fill','#2d2521');
+  coreText.setAttribute('font-size','15');
+  coreText.setAttribute('font-weight','700');
+  coreText.setAttribute('letter-spacing','0.02em');
   coreText.setAttribute('font-family','Source Sans 3, system-ui, sans-serif');
   coreText.textContent = 'CIRCLE';
   svg.appendChild(coreText);
   const coreText2 = document.createElementNS('http://www.w3.org/2000/svg','text');
-  coreText2.setAttribute('x', cx); coreText2.setAttribute('y', cy + 20);
+  coreText2.setAttribute('x', cx); coreText2.setAttribute('y', cy + 19);
   coreText2.setAttribute('text-anchor','middle');
-  coreText2.setAttribute('fill','rgba(70,55,40,0.38)');
-  coreText2.setAttribute('font-size','9');
+  coreText2.setAttribute('fill','#2d2521');
+  coreText2.setAttribute('font-size','13');
+  coreText2.setAttribute('font-weight','600');
+  coreText2.setAttribute('letter-spacing','0.02em');
   coreText2.setAttribute('font-family','Source Sans 3, system-ui, sans-serif');
   coreText2.textContent = 'OF FIFTHS';
   svg.appendChild(coreText2);
@@ -2349,12 +2421,19 @@ function buildCOF() {
 
   let selectedKey = null;
 
+  // The spine, same grammar as Keys & Chords and The Modes: a quiet dot marks
+  // scale membership, a filled dot marks the tonic. Reused, not lit as a chord —
+  // a key on the wheel names a SCALE, not a sounding chord.
+  cofKB = buildKeyboard(document.getElementById('cof-keyboard'), function(semi) {
+    playSingleNote(semi);
+  });
+
   function getScaleNotes(rootSemitone, scaleIntervals, keyPc) {
     if (keyPc === undefined) keyPc = rootSemitone;
     return scaleIntervals.map(interval => spell(rootSemitone + interval, keyPc));
   }
 
-  function selectKey(key, idx, isMinor) {
+  function selectKey(key, idx, isMinor, silent) {
     selectedKey = key;
 
     const rootSemitone = KEY_ROOT[key];
@@ -2362,11 +2441,33 @@ function buildCOF() {
 
     // Outer ring = hear the major scale; inner ring = hear the relative natural minor,
     // sounded a minor third (3 semitones) BELOW the major root, in the same octave.
-    if (isMinor) {
-      var majorBase = noteToMidi(rootSemitone, 3);
-      playCofKey(relMinorRoot, MINOR_SCALE, majorBase - 3);
-    } else {
-      playCofKey(rootSemitone, MAJOR_SCALE);
+    // Silent on the load-time default selection — nothing plays until a student acts.
+    cofClearTimers(); // a fast re-click shouldn't leave the last run's lights queued up
+    if (!silent) {
+      if (isMinor) {
+        var majorBase = noteToMidi(rootSemitone, 3);
+        playCofKey(relMinorRoot, MINOR_SCALE, majorBase - 3);
+      } else {
+        playCofKey(rootSemitone, MAJOR_SCALE);
+      }
+
+      // Walk the same 8 notes (root up to the octave) that playCofKey just scheduled,
+      // lighting each key the instant its note sounds — same 0.05s lead-in + 0.17s
+      // step used by the audio, so light and sound land together (the app's standing
+      // pattern for animated feedback, e.g. the Jazz lessons' pressExact timers).
+      // Visual key = pitch class only (root/scale-tone + interval, mod 12): the wheel
+      // can walk a scale rooted anywhere, but the keyboard only shows one octave, so
+      // any note past the top wraps around and lights back in from the bottom.
+      if (cofKB) {
+        const scaleRoot = isMinor ? relMinorRoot : rootSemitone;
+        const walkIntervals = (isMinor ? MINOR_SCALE : MAJOR_SCALE).concat([12]);
+        walkIntervals.forEach(function(iv, i) {
+          const visualSemi = (scaleRoot + iv) % 12;
+          cofPlayTimers.push(setTimeout(function() {
+            cofKB.pressExact(visualSemi);
+          }, Math.round((0.05 + i * 0.17) * 1000)));
+        });
+      }
     }
 
     document.querySelectorAll('.cof-segment').forEach(s => s.classList.remove('selected'));
@@ -2385,25 +2486,29 @@ function buildCOF() {
       ? `${COF_MINOR[idx]}  ·  relative minor of ${key} Major  ·  ${sigLabel}`
       : `${key} Major  ·  ${COF_MINOR[idx]}  ·  ${sigLabel}`;
 
-    // One row serves both keys, each shown through its full octave so neither scale
-    // is cut short: the relative minor's first two notes, the full major scale, then
-    // the major root again to close its octave. Minor scale = pills 1–8, major = pills 3–10.
-    const combined = [minorNotes[0], minorNotes[1], ...majorNotes, majorNotes[0]];
-    const pillFor = (n, i) => {
-      if (i === 2 || i === 9) return `<span class="note-pill root">${n}</span>`; // major root (and its closing octave)
-      if (i === 0 || i === 7) return `<span class="note-pill" style="background:var(--copper-light);border-color:var(--copper-light);color:var(--on-copper)">${n}</span>`; // minor root (and its closing octave)
-      return `<span class="note-pill">${n}</span>`;
-    };
+    // The spine, not a list: a major key and its relative minor are the SAME seven
+    // pitch classes, so the dots on the keyboard don't move when you switch rings —
+    // only which one is filled as the tonic moves. That's the whole lesson, shown
+    // instead of told. (Build 15 — replaces the old 9-pill note-name row.)
+    if (cofKB) {
+      cofKB.reset();
+      const tonicPc = isMinor ? relMinorRoot : rootSemitone;
+      MAJOR_SCALE.forEach(iv => {
+        const pc = (rootSemitone + iv) % 12;
+        cofKB.mark(pc, pc === tonicPc);
+      });
+    }
+
     document.getElementById('cof-details').innerHTML = `
-      <div style="margin:10px 0">
-        <div style="font-size:0.8rem;color:var(--muted);letter-spacing:0.12em;margin-bottom:5px">SCALE NOTES · ${key} MAJOR &amp; ${COF_MINOR[idx]}</div>
-        ${combined.map(pillFor).join('')}
-      </div>
       <div style="font-size:0.88rem;color:var(--muted);margin-top:6px;font-style:italic">
         Same seven notes — ${key} Major reads from <strong style="color:var(--root)">${majorNotes[0]}</strong>, ${COF_MINOR[idx]} reads from <strong style="color: var(--copper-text)">${minorNotes[0]}</strong>.
       </div>
     `;
   }
+
+  // Land on a populated panel, not an empty prompt — same pattern Keys & Chords
+  // already uses (buildDiatonic('C') → kcSetTonic(..., true) on load). Silent: true.
+  selectKey('C', 0, false, true);
 } // end buildCOF
 
 // ============================================================
@@ -2503,6 +2608,11 @@ function darkenColor(hex, f) {
 }
 
 var modeKB = null;
+// Pending key-light timers for the current scale playback, so a fast second click
+// (new mode, or toggling withinC/fromC) can't leave a stray light firing late on
+// the wrong, now-deselected key. Mirrors the Circle of Fifths cofPlayTimers pattern.
+var modePlayTimers = [];
+function modeClearTimers() { modePlayTimers.forEach(clearTimeout); modePlayTimers = []; }
 
 function buildModes() {
   if (modeKB) return; // build once
@@ -2581,6 +2691,7 @@ function setModePlayStyle(style) {
 // The 7 modes are rotations of the major scale pattern [2,2,1,2,2,2,1] (whole/half steps)
 // Starting each rotation from degree i gives that mode's interval pattern from its root.
 function playModeScale(degree) {
+  modeClearTimers();
   // Full chromatic steps for each mode starting on C (middle C = MIDI 60)
   // We rotate the major scale [0,2,4,5,7,9,11] pattern starting from degree
   const majorSteps = [0, 2, 4, 5, 7, 9, 11]; // semitones from C
@@ -2603,9 +2714,17 @@ function playModeScale(degree) {
   const ctx = getAudioCtx();
   if (ctx.state === 'suspended') ctx.resume();
   const now = ctx.currentTime + 0.05;
-  // Play ascending scale
+  // Play ascending scale, and light each key on the shared keyboard as its note
+  // sounds. The keyboard is one octave, so a note past the top wraps back down
+  // to its pitch class — same rule and same pattern as the Circle of Fifths.
   midiNotes.forEach(function(midi, i) {
     playNote(midi, now + i * 0.20, 0.46, 0.5);
+    if (modeKB) {
+      const visualSemi = ((midi % 12) + 12) % 12;
+      modePlayTimers.push(setTimeout(function() {
+        modeKB.pressExact(visualSemi);
+      }, Math.round((0.05 + i * 0.20) * 1000)));
+    }
   });
 }
 
@@ -3427,6 +3546,8 @@ let quizCat = 'All', quizPool = [], quizIdx = 0, quizScore = 0, quizTotal = 0, q
 // Session memory: indices of questions already shown. Nothing repeats until the
 // current category's pool is used up, then it quietly resets for a fresh round.
 let quizSeen = new Set(), quizJustWrapped = false;
+// Whether the once-per-load restore-from-localStorage has run yet (Item 8).
+let quizRestored = false;
 
 function quizShuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
@@ -3449,6 +3570,25 @@ function quizBuildPool(){
 function buildQuiz(){
   const cats = document.getElementById('quiz-cats');
   cats.innerHTML = QUIZ_CATS.map(c => '<button class="quiz-cat" data-cat="' + c + '" onclick="quizSetCat(this.dataset.cat)">' + c + '</button>').join('');
+  // First time the Quiz panel is built this load: recover score/category/seen-set
+  // from localStorage instead of starting at zero. quizSetCat() below is what a
+  // student clicking a category deliberately triggers, and it intentionally
+  // resets score/total — restoring has to bypass that, not call through it.
+  if (!quizRestored) {
+    quizRestored = true;
+    const saved = loadQuizState();
+    if (saved && QUIZ_CATS.indexOf(saved.cat) !== -1) {
+      quizCat = saved.cat;
+      quizScore = (typeof saved.score === 'number') ? saved.score : 0;
+      quizTotal = (typeof saved.total === 'number') ? saved.total : 0;
+      quizSeen = new Set(Array.isArray(saved.seen) ? saved.seen : []);
+      quizJustWrapped = false;
+      quizBuildPool();
+      document.querySelectorAll('#quiz-cats .quiz-cat').forEach(b => b.classList.toggle('active', b.dataset.cat === quizCat));
+      quizRender();
+      return;
+    }
+  }
   quizSetCat(quizCat);
 }
 function quizSetCat(c){
@@ -3474,6 +3614,7 @@ function quizRender(){
     '<div class="quiz-explain" id="quiz-explain" style="display:none"></div>' +
     '<div class="quiz-next-wrap" id="quiz-next-wrap" style="display:none"><button class="sel-btn" onclick="quizNext()">Next &#9654;</button></div>';
   quizUpdateScore();
+  saveQuizState();
 }
 function quizAnswer(btn){
   if (quizLocked) return; quizLocked = true;
@@ -3489,6 +3630,7 @@ function quizAnswer(btn){
   ex.textContent = QUIZ_BANK[quizPool[quizIdx]].explain; ex.style.display = 'block';
   document.getElementById('quiz-next-wrap').style.display = 'block';
   quizUpdateScore();
+  saveQuizState();
 }
 function quizNext(){ quizIdx++; quizRender(); }
 function quizUpdateScore(){
