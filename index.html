@@ -501,6 +501,18 @@
   .ear-module { display: none; }
   .ear-module.active { display: block; animation: fadeIn 0.3s ease; }
 
+  /* Locked-content card — shared by Ear Training, Jazz and Quiz gates */
+  .ns-lock-card { text-align: center; max-width: 420px; margin: 30px auto; padding: 28px 22px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--copper-light); border-radius: 3px; }
+  .ns-lock-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 1.3rem; color: var(--ink); margin-bottom: 8px; }
+  .ns-lock-blurb { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.6; margin-bottom: 18px; }
+  .ns-lock-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .ns-lock-input { flex: 1; min-width: 180px; max-width: 260px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 2px; background: var(--surface2); color: var(--ink); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.9rem; }
+  .ns-lock-msg { font-size: 0.82rem; min-height: 1.2em; margin-bottom: 10px; }
+  .ns-lock-buy { display: inline-block; font-size: 0.86rem; font-weight: 600; color: var(--copper-text); text-decoration: none; border-bottom: 1px solid var(--copper-light); padding-bottom: 1px; }
+  .ns-lock-buy:hover { color: var(--copper-text); }
+  .jl-locked .jl-num { background: var(--surface3); color: var(--muted); }
+  .jl-lock-icon { color: var(--muted); font-size: 0.95rem; margin-left: 4px; }
+
   /* MODES */
   #modes-panel { max-width: 880px; margin: 0 auto; }
   .modes-intro {
@@ -1272,6 +1284,8 @@
     </div>
     </div><!-- /ear-mod-chords -->
 
+    <div class="ear-module" id="ear-mod-chords-lock"></div>
+
     <div class="wonder-quote">
       "To listen intently, to listen consciously, to listen with one's whole intelligence is the least we can do in the furtherance of an art that is one of the glories of mankind."
       <span>— Aaron Copland, What to Listen for in Music</span>
@@ -1698,6 +1712,8 @@
           </ul>
         </div>
       </div>
+
+      <div class="jazz-lesson-content" id="jazz-lesson-lock" style="display:none;"></div>
 
       <div id="jazz-lesson-nav">
         <button id="jazz-prev" class="jazz-nav-btn" onclick="NS.jazz.prev()">‹ Previous</button>
@@ -2214,6 +2230,111 @@ function loadQuizState() {
     const parsed = JSON.parse(raw);
     return (parsed && typeof parsed === 'object') ? parsed : null;
   } catch (e) { return null; }
+}
+
+// ============================================================
+//  LICENSING (Lemon Squeezy) — gates Jazz lessons 3–7, Ear Training's
+//  Chord Quality module, and quiz questions past a free sample.
+//  Client-side only: Lemon Squeezy's License API authenticates with the
+//  license key itself, so nothing secret ever needs to live in this file.
+//  This is a $19 educational unlock, not DRM — the gate is honest, not
+//  adversarial, and a determined user could bypass it. That's fine.
+// ============================================================
+const NS_STORE_LICENSE = 'temperament_license_valid';
+const NS_STORE_QUIZ_FREE_COUNT = 'temperament_quiz_free_count';
+const NS_QUIZ_FREE_LIMIT = 10;
+const NS_JAZZ_FREE_COUNT = 2; // lessons 1–2 free (index 0,1); 3–7 locked
+
+// Fill these in once the Temperament product exists in Lemon Squeezy.
+// Store & product IDs are public identifiers, not secrets — safe here.
+const LS_STORE_ID   = '399809';
+const LS_PRODUCT_ID = '1295746';
+const LS_BUY_URL    = 'https://currancrafts.lemonsqueezy.com/checkout/buy/e6e52bb8-39f9-4008-9474-ac0eb76f573e';
+
+function nsIsLicensed() {
+  return nsStorageGet(NS_STORE_LICENSE) === '1';
+}
+function nsQuizFreeCount() {
+  const n = parseInt(nsStorageGet(NS_STORE_QUIZ_FREE_COUNT), 10);
+  return isNaN(n) ? 0 : n;
+}
+function nsQuizIncrementFreeCount() {
+  nsStorageSet(NS_STORE_QUIZ_FREE_COUNT, String(nsQuizFreeCount() + 1));
+}
+
+async function nsActivateLicense(rawKey) {
+  const key = (rawKey || '').trim();
+  if (!key) return { ok: false, msg: 'Enter a license key.' };
+  try {
+    const body = new URLSearchParams();
+    body.append('license_key', key);
+    body.append('instance_name', 'Temperament (web)');
+    const res = await fetch('https://api.lemonsqueezy.com/v1/licenses/activate', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: body
+    });
+    const data = await res.json();
+    if (!data.activated) return { ok: false, msg: (data.error || 'That key didn\u2019t validate.') };
+    const meta = data.meta || {};
+    if (LS_STORE_ID && String(meta.store_id) !== String(LS_STORE_ID)) {
+      return { ok: false, msg: 'That key isn\u2019t for Temperament.' };
+    }
+    if (LS_PRODUCT_ID && String(meta.product_id) !== String(LS_PRODUCT_ID)) {
+      return { ok: false, msg: 'That key isn\u2019t for Temperament.' };
+    }
+    nsStorageSet(NS_STORE_LICENSE, '1');
+    nsRefreshLockedContent();
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, msg: 'Could not reach the license server. Check your connection and try again.' };
+  }
+}
+
+// Shared markup for every locked-content card. `label` names what's behind it.
+function nsLockCardHTML(label) {
+  return '' +
+    '<div class="ns-lock-card">' +
+      '<div class="ns-lock-title">Unlock ' + label + '</div>' +
+      '<div class="ns-lock-blurb">This is part of the full Temperament \u2014 a one-time $19 unlock, yours for good.</div>' +
+      '<div class="ns-lock-row">' +
+        '<input type="text" class="ns-lock-input" id="ns-lock-key-input" placeholder="Paste your license key" autocomplete="off">' +
+        '<button class="sel-btn" onclick="nsHandleUnlockClick(this)">Unlock</button>' +
+      '</div>' +
+      '<div class="ns-lock-msg" id="ns-lock-msg"></div>' +
+      '<a class="ns-lock-buy" href="' + LS_BUY_URL + '" target="_blank" rel="noopener">Get Temperament \u2192</a>' +
+    '</div>';
+}
+
+async function nsHandleUnlockClick(btn) {
+  const input = document.getElementById('ns-lock-key-input');
+  const msg = document.getElementById('ns-lock-msg');
+  if (!input) return;
+  btn.disabled = true; const origText = btn.textContent; btn.textContent = 'Checking\u2026';
+  const r = await nsActivateLicense(input.value);
+  btn.disabled = false; btn.textContent = origText;
+  if (msg) {
+    msg.textContent = r.ok ? 'Unlocked \u2014 enjoy the rest of Temperament.' : r.msg;
+    msg.style.color = r.ok ? 'var(--copper-text)' : '#c0392b';
+  }
+}
+
+// Re-renders whichever gated view is currently on screen once a key
+// validates, so the student lands in the content instead of an empty tab.
+function nsRefreshLockedContent() {
+  try {
+    const chordsLock = document.getElementById('ear-mod-chords-lock');
+    if (chordsLock && chordsLock.classList.contains('active')) earShowLesson('chords');
+  } catch (e) {}
+  try {
+    const jazzLock = document.getElementById('jazz-lesson-lock');
+    if (jazzLock && jazzLock.style.display !== 'none') NS.jazz.reopenCurrent();
+    if (window.NS && NS.jazz && NS.jazz.buildMenu) NS.jazz.buildMenu();
+  } catch (e) {}
+  try {
+    const quizCard = document.getElementById('quiz-card');
+    if (quizCard && quizCard.querySelector('.ns-lock-card')) quizRender();
+  } catch (e) {}
 }
 
 // ============================================================
@@ -3205,12 +3326,18 @@ function earGuess(semi) {
 // ===== EAR-TRAINING LESSON SWITCH — show one module at a time =====
 var EAR_LESSONS = ['intervals', 'chords'];
 function earShowLesson(which){
+  var showLock = (which === 'chords') && !nsIsLicensed();
   EAR_LESSONS.forEach(function(k){
     var mod = document.getElementById('ear-mod-' + k);
-    if (mod) mod.classList.toggle('active', k === which);
+    if (mod) mod.classList.toggle('active', k === which && !(k === 'chords' && showLock));
     var tab = document.getElementById('earlesson-' + k);
     if (tab) tab.classList.toggle('active', k === which);
   });
+  var lock = document.getElementById('ear-mod-chords-lock');
+  if (lock) {
+    lock.classList.toggle('active', showLock);
+    if (showLock) lock.innerHTML = nsLockCardHTML('Chord Quality');
+  }
 }
 
 // ===== CHORD-QUALITY EAR TRAINING (triads on C) =====
@@ -3598,6 +3725,13 @@ function quizSetCat(c){
   quizRender();
 }
 function quizRender(){
+  if (!nsIsLicensed() && nsQuizFreeCount() >= NS_QUIZ_FREE_LIMIT) {
+    const card = document.getElementById('quiz-card');
+    if (card) card.innerHTML = nsLockCardHTML('the rest of the Quiz');
+    const s = document.getElementById('quiz-score');
+    if (s) s.textContent = '';
+    return;
+  }
   if (quizIdx >= quizPool.length){ quizBuildPool(); }
   quizLocked = false;
   const id = quizPool[quizIdx];
@@ -3619,6 +3753,7 @@ function quizRender(){
 function quizAnswer(btn){
   if (quizLocked) return; quizLocked = true;
   quizTotal++;
+  if (!nsIsLicensed()) nsQuizIncrementFreeCount();
   const correct = btn.dataset.correct === '1';
   if (correct) quizScore++;
   document.querySelectorAll('#quiz-opts .quiz-opt').forEach(o => {
@@ -3665,11 +3800,13 @@ NS.jazz = (function(){
     var ol = document.getElementById('jazz-lesson-list');
     if (!ol) return;
     ol.innerHTML = '';
+    var licensed = nsIsLicensed();
     LESSONS.forEach(function(L, i){
+      var locked = (i >= NS_JAZZ_FREE_COUNT) && !licensed;
       var li = document.createElement('li');
-      li.className = 'jazz-lesson-item';
+      li.className = 'jazz-lesson-item' + (locked ? ' jl-locked' : '');
       li.innerHTML = '<span class="jl-num">' + (i+1) + '</span>'
-                   + '<span class="jl-text"><span class="jl-title">' + L.n + '</span>'
+                   + '<span class="jl-text"><span class="jl-title">' + L.n + (locked ? ' <span class="jl-lock-icon">\uD83D\uDD12</span>' : '') + '</span>'
                    + '<span class="jl-blurb">' + L.blurb + '</span></span>'
                    + '<span class="jl-go">›</span>';
       li.onclick = function(){ open(i); };
@@ -3684,10 +3821,16 @@ NS.jazz = (function(){
     document.getElementById('jazz-menu').style.display = 'none';
     document.getElementById('jazz-lesson').style.display = 'block';
     document.querySelectorAll('#jazz-lesson .jazz-lesson-content').forEach(function(el){ el.style.display = 'none'; });
-    var block = document.getElementById('jazz-' + L.id);
-    if (block) block.style.display = 'block';
+    var locked = (i >= NS_JAZZ_FREE_COUNT) && !nsIsLicensed();
+    if (locked) {
+      var lockEl = document.getElementById('jazz-lesson-lock');
+      if (lockEl) { lockEl.style.display = 'block'; lockEl.innerHTML = nsLockCardHTML(L.n); }
+    } else {
+      var block = document.getElementById('jazz-' + L.id);
+      if (block) block.style.display = 'block';
+      if (!inited[L.id]) { inited[L.id] = true; if (L.init) L.init(); }
+    }
     document.getElementById('jazz-lesson-count').textContent = 'Lesson ' + (i+1) + ' of ' + LESSONS.length;
-    if (!inited[L.id]) { inited[L.id] = true; if (L.init) L.init(); }
     document.getElementById('jazz-prev').disabled = (i === 0);
     document.getElementById('jazz-next').disabled = (i === LESSONS.length - 1);
     var top = document.getElementById('jazz-lesson-top');
@@ -3700,8 +3843,9 @@ NS.jazz = (function(){
   }
   function prev(){ if (cur > 0) open(cur - 1); }
   function next(){ if (cur < LESSONS.length - 1) open(cur + 1); }
+  function reopenCurrent(){ if (cur >= 0) open(cur); }
 
-  return { register:function(L){ LESSONS.push(L); }, buildMenu:buildMenu, open:open, toMenu:toMenu, prev:prev, next:next };
+  return { register:function(L){ LESSONS.push(L); }, buildMenu:buildMenu, open:open, toMenu:toMenu, prev:prev, next:next, reopenCurrent:reopenCurrent };
 })();
 
 function buildJazz(){ NS.jazz.buildMenu(); }
