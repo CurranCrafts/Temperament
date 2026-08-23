@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — Temperament</title>
+<meta name="description" content="Temperament is free to explore. Buy the individual license to unlock everything and install it as an app, or license it for your program.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Source+Sans+3:wght@400;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --bg:#e8dcc5; --surface:#f6efdf; --surface2:#efe6d2; --surface3:#e6dac1;
+    --ink:#2d2521; --ink-soft:#5a4f44; --muted:#695f52;
+    --border:#d8c8a8; --border-soft:#e2d4ba;
+    --copper:#a85c32; --copper-light:#c8804e; --copper-text:#904f2b; --on-copper:#2b1c12;
+  }
+  html,body{background:var(--bg);}
+  body{color:var(--ink); font-family:'Source Sans 3',system-ui,sans-serif; line-height:1.65; min-height:100vh;}
+  .wrap{max-width:760px;margin:0 auto;padding:30px 20px 60px;}
+  header{text-align:center;padding:10px 0 20px;border-bottom:1px solid var(--border);margin-bottom:30px;}
+  header .back{display:inline-block;margin-bottom:14px;font-size:.82rem;color:var(--copper-text);text-decoration:none;}
+  header .back:hover{text-decoration:underline;}
+  header h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.3rem,4vw,1.8rem);color:var(--ink);letter-spacing:0.04em;}
+  header .flourish{color:var(--copper-light);}
+  header .subtitle{font-style:italic;color:var(--muted);margin-top:6px;font-size:.92rem;}
+  header .page-label{margin-top:14px;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--copper-text);}
+  h2{font-family:'Playfair Display',Georgia,serif;color:var(--ink);font-size:1.28rem;margin:32px 0 12px;}
+  p{margin-bottom:14px;color:var(--ink-soft);}
+  p.lede{font-size:1.03rem;color:var(--ink);text-align:center;font-style:italic;margin-bottom:34px;}
+  strong{color:var(--ink);}
+  a{color:var(--copper-text);}
+  .tiers{display:flex;flex-wrap:wrap;gap:14px;margin:18px 0 10px;}
+  .tier{flex:1 1 220px;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--copper-light);border-radius:3px;padding:18px 18px 22px;box-shadow:1px 2px 8px rgba(50,25,5,.1);display:flex;flex-direction:column;}
+  .tier.featured{border-top-color:var(--copper);}
+  .tier .flag{align-self:flex-start;font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:var(--copper-text);background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:2px 7px;margin-bottom:8px;}
+  .tier .name{font-family:'Playfair Display',Georgia,serif;font-size:1.12rem;color:var(--ink);}
+  .tier .amt{font-family:'Playfair Display',Georgia,serif;font-size:1.75rem;color:var(--copper-text);margin-top:6px;}
+  .tier .per{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;}
+  .tier .desc{font-size:.9rem;color:var(--ink-soft);flex-grow:1;margin-bottom:0;}
+  .tier .buy-btn{display:inline-block;margin-top:16px;background:var(--copper);color:#f6efdf;border:none;border-radius:2px;padding:10px 18px;font-family:'Source Sans 3',system-ui,sans-serif;font-weight:600;font-size:.88rem;text-decoration:none;text-align:center;cursor:pointer;}
+  .tier .buy-btn:hover{background:var(--copper-light);}
+  .tier .buy-btn.secondary{background:var(--surface2);color:var(--copper-text);border:1px solid var(--border);}
+  .tier .buy-btn.secondary:hover{background:var(--surface3);}
+  .note{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--copper-light);border-radius:2px;padding:14px 17px;margin:22px 0;font-size:.92rem;}
+  .note b{color:var(--copper-text);}
+  footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);text-align:center;font-size:.82rem;color:var(--muted);}
+  footer nav a{color:var(--copper-text);text-decoration:none;margin:0 8px;}
+  footer nav a:hover{text-decoration:underline;}
+  footer .made{margin-top:10px;font-style:italic;}
+  @media(max-width:520px){.tiers{flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <a class="back" href="index.html">&larr; Back to Temperament</a>
+    <h1><span class="flourish">&#10022;</span> Temperament <span class="flourish">&#10022;</span></h1>
+    <p class="subtitle">The Nature of Western Music Theory</p>
+    <p class="page-label">Pricing</p>
+  </header>
+
+  <p class="lede">Most of Temperament is free to open and explore, right now, at this address. Buying unlocks the rest, and gives you the app itself.</p>
+
+  <div class="tiers">
+    <div class="tier featured">
+      <span class="flag">Individual</span>
+      <div class="name">Individual</div>
+      <div class="amt">$19</div>
+      <div class="per">one time</div>
+      <p class="desc">Explore most of Temperament free, in any browser: the full Circle of Fifths, Keys &amp; Chords, The Modes, Mathematics, History, and the Intervals lesson in Ear Training. Buying unlocks the rest &mdash; the complete Jazz sequence, the Chord Quality lesson, and the full 96-question Quiz &mdash; and turns Temperament into an app of its own. Add it to your phone's home screen and it opens full screen, no browser bar, and keeps working with no internet connection. Licensed for your own personal use.</p>
+      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20individual%20license" data-role="buy-individual"><!-- Paddle.js overlay checkout attaches here once the price ID exists; mailto is the interim path. -->Buy &mdash; $19</a>
+    </div>
+    <div class="tier">
+      <div class="name">Studio</div>
+      <div class="amt">$150</div>
+      <div class="per">per year</div>
+      <p class="desc">For one private teacher, up to 25 students. A private deployment at your own address, independent of the public version. The right to assign it on a syllabus and distribute it to your enrolled students. A syllabus map pairing each section of the app to the weeks of a standard theory sequence.</p>
+      <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Studio%20license">Get in touch</a>
+    </div>
+    <div class="tier">
+      <span class="flag">Most schools</span>
+      <div class="name">Department</div>
+      <div class="amt">$450</div>
+      <div class="per">per year</div>
+      <p class="desc">Everything in Studio, for one program with unlimited enrolled students, plus an hour with the maker: a live session for your faculty or your students, in person in the New York area or by video anywhere.</p>
+      <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Department%20license">Get in touch</a>
+    </div>
+    <div class="tier">
+      <div class="name">Institution</div>
+      <div class="amt">from $1,200</div>
+      <div class="per">per year</div>
+      <p class="desc">For multiple departments or a whole school of music. Scaled to enrollment, with a session for each program.</p>
+      <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Institution%20license">Get in touch</a>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>Founding programs, year one.</b> The first five departments to sign for the 2026&ndash;27 year pay half, in exchange for a conversation at the end of each semester about what students actually used and what they ignored.
+  </div>
+
+  <h2>How to buy</h2>
+  <p>Individual copies purchase instantly through checkout on this site. For Studio, Department, or Institution licenses, write to <a href="mailto:matthew@matthewcurran.net">matthew@matthewcurran.net</a>. Institutional invoicing, purchase orders, and a W&#8209;9 are all available.</p>
+
+  <footer>
+    <nav>
+      <a href="index.html">Home</a>&middot;
+      <a href="pricing.html">Pricing</a>&middot;
+      <a href="terms.html">Terms</a>&middot;
+      <a href="privacy.html">Privacy</a>&middot;
+      <a href="refund.html">Refund Policy</a>
+    </nav>
+    <p class="made">Temperament is a Curran Crafts product. Made in New York. &middot; <a href="mailto:matthew@matthewcurran.net">matthew@matthewcurran.net</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
