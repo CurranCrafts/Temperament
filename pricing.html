@@ -67,7 +67,7 @@
       <div class="name">Individual</div>
       <div class="amt">$19</div>
       <div class="per">one time</div>
-      <p class="desc">Explore most of Temperament free, in any browser: the full Circle of Fifths, Keys &amp; Chords, The Modes, Mathematics, History, and the Intervals lesson in Ear Training. Buying unlocks the rest &mdash; the complete Jazz sequence, the Chord Quality lesson, and the full 96-question Quiz &mdash; and turns Temperament into an app of its own. Add it to your phone's home screen and it opens full screen, no browser bar, and keeps working with no internet connection. Licensed for your own personal use.</p>
+      <p class="desc">Explore most of Temperament free, in any browser: the full Circle of Fifths, Keys &amp; Chords, The Modes, Mathematics, History, the Intervals lesson in Ear Training, the first two Jazz lessons, and the first ten Quiz questions. Buying unlocks the rest &mdash; the remaining five Jazz lessons, the Chord Quality lesson, and the other 86 Quiz questions &mdash; and turns Temperament into an app of its own. Add it to your phone's home screen and it opens full screen, no browser bar, and keeps working with no internet connection. Licensed for your own personal use.</p>
       <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20individual%20license" data-role="buy-individual"><!-- Stays a mailto: link until the Paddle script at the foot of this page takes over the click. If checkout can't start, the email path is what's left. -->Buy &mdash; $19</a>
     </div>
     <div class="tier">
@@ -75,6 +75,7 @@
       <div class="amt">$150</div>
       <div class="per">per year</div>
       <p class="desc">For one private teacher, up to 25 students. A private deployment at your own address, independent of the public version. The right to assign it on a syllabus and distribute it to your enrolled students. A syllabus map pairing each section of the app to the weeks of a standard theory sequence.</p>
+      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Studio%20license" data-role="buy-studio"><!-- Paddle checkout takes over the click once the script at the foot of this page initializes; mailto is what's left if it can't. -->Buy &mdash; $150/yr</a>
       <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Studio%20license">Get in touch</a>
     </div>
     <div class="tier">
@@ -83,6 +84,7 @@
       <div class="amt">$450</div>
       <div class="per">per year</div>
       <p class="desc">Everything in Studio, for one program with unlimited enrolled students, plus an hour with the maker: a live session for your faculty or your students, in person in the New York area or by video anywhere.</p>
+      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Department%20license" data-role="buy-department"><!-- Paddle checkout takes over the click once the script at the foot of this page initializes; mailto is what's left if it can't. -->Buy &mdash; $450/yr</a>
       <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Department%20license">Get in touch</a>
     </div>
     <div class="tier">
@@ -90,6 +92,7 @@
       <div class="amt">from $1,200</div>
       <div class="per">per year</div>
       <p class="desc">For multiple departments or a whole school of music. Scaled to enrollment, with a session for each program.</p>
+      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Institution%20license" data-role="buy-institution"><!-- Paddle checkout takes over the click once the script at the foot of this page initializes; mailto is what's left if it can't. -->Buy &mdash; from $1,200/yr</a>
       <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Institution%20license">Get in touch</a>
     </div>
   </div>
@@ -99,7 +102,7 @@
   </div>
 
   <h2>How to buy</h2>
-  <p>Individual copies purchase instantly through checkout on this site. For Studio, Department, or Institution licenses, write to <a href="mailto:matthew@matthewcurran.net">matthew@matthewcurran.net</a>. Institutional invoicing, purchase orders, and a W&#8209;9 are all available.</p>
+  <p>Every tier purchases instantly through checkout on this site. If you need an invoice, a purchase order, or a W&#8209;9 &mdash; the usual case for schools &mdash; write to <a href="mailto:matthew@matthewcurran.net">matthew@matthewcurran.net</a> instead and it's handled by hand.</p>
 
   <footer>
     <nav>
@@ -129,13 +132,23 @@
     // can only open a checkout. It is not the API key, which never goes here.
     token: "test_fd1376f795072a55c4a61c121ec",
 
-    individualPriceId: "pri_01m0rnq231prg6q6dprsa8eryk",
+    // One price per self-serve tier. Institution charges its floor price
+    // ($1,200); a larger deal still goes through "Get in touch" beside it.
+    priceIds: {
+      "buy-individual": "pri_01m0rnq231prg6q6dprsa8eryk",
+      "buy-studio": "pri_01m0rnq2a95mvv2kxzcmxwawnf",
+      "buy-department": "pri_01m0rnqby8fy3mye9790p0f5fj",
+      "buy-institution": "pri_01m0rnqc3zy74vzschg92fyh5v"
+    },
 
     productionHost: "temperament.currancrafts.com"
   };
 
-  var button = document.querySelector('[data-role="buy-individual"]');
-  if (!button) return;
+  var buttons = Array.prototype.filter.call(
+    document.querySelectorAll("[data-role]"),
+    function (el) { return Object.prototype.hasOwnProperty.call(PADDLE.priceIds, el.getAttribute("data-role")); }
+  );
+  if (buttons.length === 0) return;
 
   // Every bail-out below just returns, which leaves the button as the mailto:
   // link it already is. A visitor always has some way to reach a purchase.
@@ -196,12 +209,17 @@
     return refuse("initialization threw: " + error.message);
   }
 
-  // Only now, with Paddle live, does the button stop being an email link.
-  button.addEventListener("click", function (event) {
-    event.preventDefault();
-    Paddle.Checkout.open({
-      items: [{ priceId: PADDLE.individualPriceId, quantity: 1 }],
-      settings: { variant: "one-page" }
+  // Only now, with Paddle live, do the buttons stop being email links. Each
+  // one opens checkout for its own price; "Get in touch" beside it is
+  // untouched by any of this and always still works.
+  buttons.forEach(function (button) {
+    var priceId = PADDLE.priceIds[button.getAttribute("data-role")];
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      Paddle.Checkout.open({
+        items: [{ priceId: priceId, quantity: 1 }],
+        settings: { variant: "one-page" }
+      });
     });
   });
 })();

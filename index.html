@@ -501,6 +501,18 @@
   .ear-module { display: none; }
   .ear-module.active { display: block; animation: fadeIn 0.3s ease; }
 
+  /* Locked-content card — shared by Ear Training, Jazz and Quiz gates */
+  .ns-lock-card { text-align: center; max-width: 420px; margin: 30px auto; padding: 28px 22px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--copper-light); border-radius: 3px; }
+  .ns-lock-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 1.3rem; color: var(--ink); margin-bottom: 8px; }
+  .ns-lock-blurb { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.6; margin-bottom: 18px; }
+  .ns-lock-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .ns-lock-input { flex: 1; min-width: 180px; max-width: 260px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 2px; background: var(--surface2); color: var(--ink); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.9rem; }
+  .ns-lock-msg { font-size: 0.82rem; min-height: 1.2em; margin-bottom: 10px; }
+  .ns-lock-buy { display: inline-block; font-size: 0.86rem; font-weight: 600; color: var(--copper-text); text-decoration: none; border-bottom: 1px solid var(--copper-light); padding-bottom: 1px; }
+  .ns-lock-buy:hover { color: var(--copper-text); }
+  .jl-locked .jl-num { background: var(--surface3); color: var(--muted); }
+  .jl-lock-icon { color: var(--muted); font-size: 0.95rem; margin-left: 4px; }
+
   /* MODES */
   #modes-panel { max-width: 880px; margin: 0 auto; }
   .modes-intro {
@@ -1226,6 +1238,7 @@
       <div id="ear-score" style="font-size:0.86rem;color:var(--muted)">Score: 0 / 0</div>
       <div id="ear-streak" style="font-size:0.82rem;color:var(--muted);margin-top:3px"></div>
     </div>
+    <div id="iv-challenge-lock" style="display:none;"></div>
 
     <div class="modes-intro" style="margin-top:14px">
       An <em>interval</em> is the step-wise distance between two pitches. This interval trainer is set to C major. Click a note to see what the relative interval is, or click the interval so that it shows and plays you that interval.
@@ -1271,6 +1284,7 @@
       A <em>triad</em> is three notes stacked in thirds, and its quality — <strong>major, minor, diminished, or augmented</strong> — is set entirely by the size of those two thirds. In <em>Explore</em>, click a quality to see it on the keys and hear it. In <em>Challenge</em>, name the mystery chord by ear.
     </div>
     </div><!-- /ear-mod-chords -->
+    <div class="ear-module" id="ear-mod-chords-lock"></div>
 
     <div class="wonder-quote">
       "To listen intently, to listen consciously, to listen with one's whole intelligence is the least we can do in the furtherance of an art that is one of the glories of mankind."
@@ -1479,6 +1493,7 @@
         <button class="jazz-back" onclick="NS.jazz.toMenu()">‹ All lessons</button>
         <span id="jazz-lesson-count" class="jazz-count"></span>
       </div>
+      <div id="jazz-lesson-lock" style="display:none;"></div>
 
       <!-- Lesson 1 · Guide Tones -->
       <div class="jazz-lesson-content" id="jazz-m1" style="display:none;">
@@ -2235,6 +2250,173 @@ function loadQuizState() {
 }
 
 // ============================================================
+//  LICENSING — gates Jazz lessons 3–7, the Interval Trainer's Challenge
+//  mode, Ear Training's Chord Quality lesson, and the Quiz past a free
+//  sample. Client-side, no build step, no external file — the same
+//  self-contained-HTML discipline as the rest of this app.
+//
+//  Verification is offline and cryptographic: a license key is a
+//  TMPR1.<payload>.<signature> string, ECDSA P-256-signed by a private key
+//  held only by the licensing Worker. This file carries just the PUBLIC
+//  half, so it can check a signature but never mint one. A short activation
+//  code (XXXX-XXXX-XXXX, easier to type on a second device) costs one
+//  network call to the Worker to resolve into the real key; after that, the
+//  key verifies fully offline, forever, with no further calls needed.
+//
+//  This is a $19 educational unlock, not DRM — the gate is honest, not
+//  adversarial, and a determined user could bypass it. That's fine.
+// ============================================================
+const NS_LICENSE_PUBLIC_KEY = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0hRI3w50cX21tGyDFzqao+9KmBIvxNMgWL7oRB288eK0yBYJoAq2eQwme/n0RVaIZIbImVwkGxNs2wh1kgL53Q==';
+const NS_LICENSE_WORKER = 'https://temperament-licensing.matthew-7ff.workers.dev';
+const NS_STORE_LICENSE_KEY = 'temperament.license';
+const NS_STORE_QUIZ_FREE_COUNT = 'temperament_quiz_free_count';
+const NS_QUIZ_FREE_LIMIT = 10;
+const NS_JAZZ_FREE_COUNT = 2; // lessons 1–2 free (index 0,1); 3–7 locked
+
+// Cached, synchronous — every gating check below reads only this, exactly
+// like every other check in this app. It is set true ONLY after a real
+// signature verification succeeds (on load, and right after an unlock) —
+// never trusted from a bare flag alone, unlike a simpler "unlocked=1" flag.
+let nsLicensedCache = false;
+function nsIsLicensed() { return nsLicensedCache; }
+
+function nsFromBase64Url(value) {
+  return Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), function(c){ return c.charCodeAt(0); });
+}
+
+// Verifies a TMPR1 key's signature. Returns the payload ({e,t,d}) if
+// genuine, or null if missing, malformed, edited, or signed by anything
+// other than the Worker's matching private key. Never throws.
+async function nsVerifyLicenseKey(licenseKey) {
+  try {
+    if (typeof licenseKey !== 'string') return null;
+    var parts = licenseKey.trim().split('.');
+    if (parts.length !== 3 || parts[0] !== 'TMPR1') return null;
+    var publicKey = await crypto.subtle.importKey(
+      'spki',
+      Uint8Array.from(atob(NS_LICENSE_PUBLIC_KEY), function(c){ return c.charCodeAt(0); }),
+      { name: 'ECDSA', namedCurve: 'P-256' },
+      false,
+      ['verify']
+    );
+    var payloadBytes = nsFromBase64Url(parts[1]);
+    var genuine = await crypto.subtle.verify(
+      { name: 'ECDSA', hash: 'SHA-256' },
+      publicKey,
+      nsFromBase64Url(parts[2]),
+      payloadBytes
+    );
+    if (!genuine) return null;
+    return JSON.parse(new TextDecoder().decode(payloadBytes));
+  } catch (e) { return null; }
+}
+
+// Re-derives the cached flag from a real verification of whatever key is
+// stored, and re-renders any locked panel currently on screen if the state
+// just flipped true. Async — the very first paint may briefly show a panel
+// as locked before this resolves; acceptable, matches how the rest of the
+// app already loads.
+async function nsRefreshLicenseState() {
+  var stored = nsStorageGet(NS_STORE_LICENSE_KEY);
+  var payload = stored ? await nsVerifyLicenseKey(stored) : null;
+  var wasLicensed = nsLicensedCache;
+  nsLicensedCache = Boolean(payload);
+  if (nsLicensedCache && !wasLicensed) nsRefreshLockedContent();
+  return nsLicensedCache;
+}
+
+function nsQuizFreeCount() {
+  const n = parseInt(nsStorageGet(NS_STORE_QUIZ_FREE_COUNT), 10);
+  return isNaN(n) ? 0 : n;
+}
+function nsQuizIncrementFreeCount() {
+  nsStorageSet(NS_STORE_QUIZ_FREE_COUNT, String(nsQuizFreeCount() + 1));
+}
+
+// Accepts either the long key or a short XXXX-XXXX-XXXX activation code — a
+// short code costs one network call to resolve to the real key; the key
+// itself verifies fully offline from then on, same as pasting it directly.
+async function nsActivateLicense(rawInput) {
+  const raw = (rawInput || '').trim();
+  if (!raw) return { ok: false, msg: 'Enter a license key.' };
+
+  let key = raw;
+  if (/^[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$/.test(raw)) {
+    try {
+      const res = await fetch(NS_LICENSE_WORKER + '/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: raw })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.key) {
+        return { ok: false, msg: data.error === 'revoked' ? 'This license was refunded.' : 'That code wasn’t recognised.' };
+      }
+      key = data.key;
+    } catch (e) {
+      return { ok: false, msg: 'Could not reach the license server. Check your connection and try again.' };
+    }
+  }
+
+  const payload = await nsVerifyLicenseKey(key);
+  if (!payload) return { ok: false, msg: 'That key didn’t validate.' };
+
+  nsStorageSet(NS_STORE_LICENSE_KEY, key);
+  nsLicensedCache = true;
+  nsRefreshLockedContent();
+  return { ok: true };
+}
+
+// Shared markup for every locked-content card. `label` names what's behind it.
+function nsLockCardHTML(label) {
+  return '' +
+    '<div class="ns-lock-card">' +
+      '<div class="ns-lock-title">Unlock ' + label + '</div>' +
+      '<div class="ns-lock-blurb">This is part of the full Temperament — a one-time $19 unlock, yours for good.</div>' +
+      '<div class="ns-lock-row">' +
+        '<input type="text" class="ns-lock-input" id="ns-lock-key-input" placeholder="Paste your key or code" autocomplete="off">' +
+        '<button class="sel-btn" onclick="nsHandleUnlockClick(this)">Unlock</button>' +
+      '</div>' +
+      '<div class="ns-lock-msg" id="ns-lock-msg"></div>' +
+      '<a class="ns-lock-buy" href="pricing.html">Get Temperament →</a>' +
+    '</div>';
+}
+
+async function nsHandleUnlockClick(btn) {
+  const input = document.getElementById('ns-lock-key-input');
+  const msg = document.getElementById('ns-lock-msg');
+  if (!input) return;
+  btn.disabled = true; const origText = btn.textContent; btn.textContent = 'Checking…';
+  const r = await nsActivateLicense(input.value);
+  btn.disabled = false; btn.textContent = origText;
+  if (msg) {
+    msg.textContent = r.ok ? 'Unlocked — enjoy the rest of Temperament.' : r.msg;
+    msg.style.color = r.ok ? 'var(--copper-text)' : '#c0392b';
+  }
+}
+
+// Re-renders whichever gated view is currently on screen once a key
+// validates, so the student lands in the content instead of an empty tab.
+function nsRefreshLockedContent() {
+  try {
+    var chordsLock = document.getElementById('ear-mod-chords-lock');
+    if (chordsLock && chordsLock.classList.contains('active')) earShowLesson('chords');
+  } catch (e) {}
+  try {
+    if (typeof ivMode !== 'undefined' && ivMode === 'challenge') ivSetMode('challenge');
+  } catch (e) {}
+  try {
+    var jazzLock = document.getElementById('jazz-lesson-lock');
+    if (jazzLock && jazzLock.style.display !== 'none' && window.NS && NS.jazz && NS.jazz.reopenCurrent) NS.jazz.reopenCurrent();
+    if (window.NS && NS.jazz && NS.jazz.buildMenu) NS.jazz.buildMenu();
+  } catch (e) {}
+  try {
+    var quizCard = document.getElementById('quiz-card');
+    if (quizCard && quizCard.querySelector('.ns-lock-card')) quizRender();
+  } catch (e) {}
+}
+
+// ============================================================
 //  NAV — lazy panel init
 // ============================================================
 const panelBuilt = {};
@@ -2283,6 +2465,7 @@ function goAbout(){
 
 // COF auto-builds on load since it's the default visible panel
 window.addEventListener('load', function() {
+  nsSafeRun(function(){ nsRefreshLicenseState(); }, 'License check');
   panelBuilt['cof'] = true;
   panelBuilt['diatonic'] = true;
   setTimeout(function(){ nsSafeRun(buildCOF, 'Circle of Fifths'); }, 80);
@@ -3125,12 +3308,18 @@ function ivSetMode(mode) {
   earAnswered = false;
   document.getElementById('iv-mode-explore').classList.toggle('active', mode === 'explore');
   document.getElementById('iv-mode-challenge').classList.toggle('active', mode === 'challenge');
-  document.getElementById('iv-challenge-controls').style.display = (mode === 'challenge') ? 'block' : 'none';
+  var challengeLocked = (mode === 'challenge') && !nsIsLicensed();
+  document.getElementById('iv-challenge-controls').style.display = (mode === 'challenge' && !challengeLocked) ? 'block' : 'none';
+  var challengeLock = document.getElementById('iv-challenge-lock');
+  if (challengeLock) {
+    challengeLock.style.display = challengeLocked ? 'block' : 'none';
+    if (challengeLocked) challengeLock.innerHTML = nsLockCardHTML('the Interval Challenge');
+  }
   ivClearChips();
   if (ivKB) { ivKB.reset(); ivKB.mark(0, true); }   // rest as a keyboard, root anchored
   document.getElementById('iv-readout').innerHTML = (mode === 'explore')
     ? '<span style="color:var(--muted);font-style:italic">Click any key or interval to hear it.</span>'
-    : '<span style="color:var(--muted);font-style:italic">Press &ldquo;Play mystery interval&rdquo;, then click your answer — on the keys or in the list.</span>';
+    : (challengeLocked ? '' : '<span style="color:var(--muted);font-style:italic">Press &ldquo;Play mystery interval&rdquo;, then click your answer — on the keys or in the list.</span>');
 }
 
 // ---- chip helpers ----
@@ -3223,12 +3412,18 @@ function earGuess(semi) {
 // ===== EAR-TRAINING LESSON SWITCH — show one module at a time =====
 var EAR_LESSONS = ['intervals', 'chords'];
 function earShowLesson(which){
+  var showLock = (which === 'chords') && !nsIsLicensed();
   EAR_LESSONS.forEach(function(k){
     var mod = document.getElementById('ear-mod-' + k);
-    if (mod) mod.classList.toggle('active', k === which);
+    if (mod) mod.classList.toggle('active', k === which && !(k === 'chords' && showLock));
     var tab = document.getElementById('earlesson-' + k);
     if (tab) tab.classList.toggle('active', k === which);
   });
+  var lock = document.getElementById('ear-mod-chords-lock');
+  if (lock) {
+    lock.classList.toggle('active', showLock);
+    if (showLock) lock.innerHTML = nsLockCardHTML('Chord Quality');
+  }
 }
 
 // ===== CHORD-QUALITY EAR TRAINING (triads on C) =====
@@ -3616,6 +3811,13 @@ function quizSetCat(c){
   quizRender();
 }
 function quizRender(){
+  if (!nsIsLicensed() && nsQuizFreeCount() >= NS_QUIZ_FREE_LIMIT) {
+    const card = document.getElementById('quiz-card');
+    if (card) card.innerHTML = nsLockCardHTML('the rest of the Quiz');
+    const s = document.getElementById('quiz-score');
+    if (s) s.textContent = '';
+    return;
+  }
   if (quizIdx >= quizPool.length){ quizBuildPool(); }
   quizLocked = false;
   const id = quizPool[quizIdx];
@@ -3637,6 +3839,7 @@ function quizRender(){
 function quizAnswer(btn){
   if (quizLocked) return; quizLocked = true;
   quizTotal++;
+  if (!nsIsLicensed()) nsQuizIncrementFreeCount();
   const correct = btn.dataset.correct === '1';
   if (correct) quizScore++;
   document.querySelectorAll('#quiz-opts .quiz-opt').forEach(o => {
@@ -3683,11 +3886,13 @@ NS.jazz = (function(){
     var ol = document.getElementById('jazz-lesson-list');
     if (!ol) return;
     ol.innerHTML = '';
+    var licensed = nsIsLicensed();
     LESSONS.forEach(function(L, i){
+      var locked = (i >= NS_JAZZ_FREE_COUNT) && !licensed;
       var li = document.createElement('li');
-      li.className = 'jazz-lesson-item';
+      li.className = 'jazz-lesson-item' + (locked ? ' jl-locked' : '');
       li.innerHTML = '<span class="jl-num">' + (i+1) + '</span>'
-                   + '<span class="jl-text"><span class="jl-title">' + L.n + '</span>'
+                   + '<span class="jl-text"><span class="jl-title">' + L.n + (locked ? ' <span class="jl-lock-icon">🔒</span>' : '') + '</span>'
                    + '<span class="jl-blurb">' + L.blurb + '</span></span>'
                    + '<span class="jl-go">›</span>';
       li.onclick = function(){ open(i); };
@@ -3702,10 +3907,17 @@ NS.jazz = (function(){
     document.getElementById('jazz-menu').style.display = 'none';
     document.getElementById('jazz-lesson').style.display = 'block';
     document.querySelectorAll('#jazz-lesson .jazz-lesson-content').forEach(function(el){ el.style.display = 'none'; });
-    var block = document.getElementById('jazz-' + L.id);
-    if (block) block.style.display = 'block';
+    var locked = (i >= NS_JAZZ_FREE_COUNT) && !nsIsLicensed();
+    var lockEl = document.getElementById('jazz-lesson-lock');
+    if (locked) {
+      if (lockEl) { lockEl.style.display = 'block'; lockEl.innerHTML = nsLockCardHTML(L.n); }
+    } else {
+      if (lockEl) lockEl.style.display = 'none';
+      var block = document.getElementById('jazz-' + L.id);
+      if (block) block.style.display = 'block';
+      if (!inited[L.id]) { inited[L.id] = true; if (L.init) L.init(); }
+    }
     document.getElementById('jazz-lesson-count').textContent = 'Lesson ' + (i+1) + ' of ' + LESSONS.length;
-    if (!inited[L.id]) { inited[L.id] = true; if (L.init) L.init(); }
     document.getElementById('jazz-prev').disabled = (i === 0);
     document.getElementById('jazz-next').disabled = (i === LESSONS.length - 1);
     var top = document.getElementById('jazz-lesson-top');
@@ -3718,8 +3930,9 @@ NS.jazz = (function(){
   }
   function prev(){ if (cur > 0) open(cur - 1); }
   function next(){ if (cur < LESSONS.length - 1) open(cur + 1); }
+  function reopenCurrent(){ if (cur >= 0) open(cur); }
 
-  return { register:function(L){ LESSONS.push(L); }, buildMenu:buildMenu, open:open, toMenu:toMenu, prev:prev, next:next };
+  return { register:function(L){ LESSONS.push(L); }, buildMenu:buildMenu, open:open, toMenu:toMenu, prev:prev, next:next, reopenCurrent:reopenCurrent };
 })();
 
 function buildJazz(){ NS.jazz.buildMenu(); }
