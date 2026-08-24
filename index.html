@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#e8dcc5">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Temperament</title>
 <style>
 
@@ -4433,5 +4437,17 @@ NS.jazz.register({ id:'m7', n:'Time and Feel', blurb:'Straight vs swing — wher
      and sets no cookies, so it does not change the privacy posture. -->
 <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "146d9cdb4fd24dd69b6ca83fa8a35e2d"}'></script>
 <!-- End Cloudflare Web Analytics -->
+<script>
+/* PWA: register the service worker (network-first; see sw.js). Guarded so
+   opening this file locally (file://) or on an insecure origin is a no-op. */
+if ('serviceWorker' in navigator &&
+    (location.protocol === 'https:' || ['localhost','127.0.0.1'].indexOf(location.hostname) !== -1)) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function (e) {
+      console.warn('SW registration failed:', e);
+    });
+  });
+}
+</script>
 </body>
 </html>
