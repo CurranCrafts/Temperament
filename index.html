@@ -2329,6 +2329,38 @@ async function nsRefreshLicenseState() {
   return nsLicensedCache;
 }
 
+// --- Opportunistic revocation check (Worker GET /status) ---------------
+// The signed key verifies offline forever; this is the one counterweight:
+// at most once a day, IF the app happens to be online, ask the Worker
+// whether this key was revoked (refund / merchant error). Fail-open by
+// design — no network, slow network, server error: nothing changes and the
+// student keeps working offline. Only a definitive { revoked: true } on a
+// 200 response re-locks: the stored key is cleared and the cached flag
+// dropped, so gated content locks on the next render or load. Deliberately
+// no forced re-render of whatever is on screen right now — this is the
+// honest gate, not DRM, and the genuine case (rare by policy: Individual
+// is non-refundable) fully resolves on the next visit.
+const NS_STORE_LICENSE_CHECKED = 'temperament.license.checked';
+const NS_LICENSE_CHECK_EVERY_MS = 24 * 60 * 60 * 1000; // daily, at most
+
+async function nsCheckRevocation() {
+  try {
+    if (!nsLicensedCache) return;
+    var last = parseInt(nsStorageGet(NS_STORE_LICENSE_CHECKED), 10);
+    if (!isNaN(last) && (Date.now() - last) < NS_LICENSE_CHECK_EVERY_MS) return;
+    var key = nsStorageGet(NS_STORE_LICENSE_KEY);
+    if (!key) return;
+    var res = await fetch(NS_LICENSE_WORKER + '/status?key=' + encodeURIComponent(key));
+    if (!res || !res.ok) return; // server hiccup: fail open, retry next load
+    var data = await res.json();
+    nsStorageSet(NS_STORE_LICENSE_CHECKED, String(Date.now())); // definitive answer — start the daily clock
+    if (data && data.revoked === true) {
+      nsStorageSet(NS_STORE_LICENSE_KEY, '');
+      nsLicensedCache = false;
+    }
+  } catch (e) { /* offline or malformed — fail open, silent */ }
+}
+
 function nsQuizFreeCount() {
   const n = parseInt(nsStorageGet(NS_STORE_QUIZ_FREE_COUNT), 10);
   return isNaN(n) ? 0 : n;
@@ -2367,6 +2399,7 @@ async function nsActivateLicense(rawInput) {
 
   nsStorageSet(NS_STORE_LICENSE_KEY, key);
   nsLicensedCache = true;
+  nsStorageSet(NS_STORE_LICENSE_CHECKED, String(Date.now())); // just validated — daily clock starts now
   nsRefreshLockedContent();
   return { ok: true };
 }
@@ -2469,7 +2502,7 @@ function goAbout(){
 
 // COF auto-builds on load since it's the default visible panel
 window.addEventListener('load', function() {
-  nsSafeRun(function(){ nsRefreshLicenseState(); }, 'License check');
+  nsSafeRun(function(){ nsRefreshLicenseState().then(function(){ nsCheckRevocation(); }); }, 'License check');
   panelBuilt['cof'] = true;
   panelBuilt['diatonic'] = true;
   setTimeout(function(){ nsSafeRun(buildCOF, 'Circle of Fifths'); }, 80);
@@ -2527,29 +2560,28 @@ function buildCOF() {
   core.setAttribute('stroke', 'rgba(120,95,55,0.30)'); core.setAttribute('stroke-width', '1');
   svg.appendChild(core);
 
-  // Build 16 (2026-08-15): the wheel's own name was nearly invisible — 50% and 38%
-  // opacity on a light background is well under readable contrast. Solid --ink at
-  // full opacity, sized up, so the label reads instead of just implying its shape.
-  const coreText = document.createElementNS('http://www.w3.org/2000/svg','text');
-  coreText.setAttribute('x', cx); coreText.setAttribute('y', cy + 2);
-  coreText.setAttribute('text-anchor','middle');
-  coreText.setAttribute('fill','#2d2521');
-  coreText.setAttribute('font-size','15');
-  coreText.setAttribute('font-weight','700');
-  coreText.setAttribute('letter-spacing','0.02em');
-  coreText.setAttribute('font-family','Source Sans 3, system-ui, sans-serif');
-  coreText.textContent = 'CIRCLE';
-  svg.appendChild(coreText);
-  const coreText2 = document.createElementNS('http://www.w3.org/2000/svg','text');
-  coreText2.setAttribute('x', cx); coreText2.setAttribute('y', cy + 19);
-  coreText2.setAttribute('text-anchor','middle');
-  coreText2.setAttribute('fill','#2d2521');
-  coreText2.setAttribute('font-size','13');
-  coreText2.setAttribute('font-weight','600');
-  coreText2.setAttribute('letter-spacing','0.02em');
-  coreText2.setAttribute('font-family','Source Sans 3, system-ui, sans-serif');
-  coreText2.textContent = 'OF FIFTHS';
-  svg.appendChild(coreText2);
+  // Build 24 (2026-08-25, Matthew's direction): the hub is the page's title moment —
+  // full "The Circle of Fifths" stacked in the center, the two big words carrying
+  // the size, the two small words set as quiet italic serif connectors. Sized up
+  // from Build 16's 15px so there's no question what this page is about.
+  [
+    { t: 'The',    dy: -34, size: 12, weight: '400', style: 'italic', fill: '#5a4f44', ls: '0.02em' },
+    { t: 'CIRCLE', dy: -12, size: 19, weight: '700', style: 'normal', fill: '#2d2521', ls: '0.04em' },
+    { t: 'of',     dy:   8, size: 12, weight: '400', style: 'italic', fill: '#5a4f44', ls: '0.02em' },
+    { t: 'FIFTHS', dy:  30, size: 19, weight: '700', style: 'normal', fill: '#2d2521', ls: '0.04em' },
+  ].forEach(function(line){
+    const el = document.createElementNS('http://www.w3.org/2000/svg','text');
+    el.setAttribute('x', cx); el.setAttribute('y', cy + line.dy);
+    el.setAttribute('text-anchor','middle');
+    el.setAttribute('fill', line.fill);
+    el.setAttribute('font-size', String(line.size));
+    el.setAttribute('font-weight', line.weight);
+    el.setAttribute('font-style', line.style);
+    el.setAttribute('letter-spacing', line.ls);
+    el.setAttribute('font-family', "'Playfair Display', Georgia, serif");
+    el.textContent = line.t;
+    svg.appendChild(el);
+  });
 
   const segAngle = (Math.PI * 2) / 12;
   const startOffset = -Math.PI / 2 - segAngle / 2;
