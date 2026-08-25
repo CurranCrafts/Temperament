@@ -940,6 +940,45 @@
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); border: 1px solid var(--muted);
   }
 
+  /* ADD-TO-HOME-SCREEN BANNER — a light nudge toward the free install +
+     offline experience every visitor already gets (see the PWA, Build 20).
+     Bottom strip rather than #audio-unlock's centered pill: this one carries
+     more — message, an action, a close, and a quieter opt-out — so it earns
+     the full width at phone size. Offered identically to free and paid
+     visitors; never gated on license state. */
+  .a2hs-banner {
+    display: none;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
+    background: var(--surface); border-top: 3px solid var(--copper-light);
+    box-shadow: 0 -3px 10px rgba(0,0,0,0.18);
+    padding: 12px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+  }
+  .a2hs-banner.visible { display: block; animation: fadeIn 0.3s ease; }
+  .a2hs-row { display: flex; align-items: center; gap: 12px; max-width: 560px; margin: 0 auto; }
+  .a2hs-msg { flex: 1; font-size: 0.88rem; color: var(--ink); line-height: 1.45; }
+  .a2hs-icon { display: inline-block; }
+  .a2hs-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .a2hs-add-btn {
+    background: var(--copper-light); border: 1px solid var(--copper-light); color: var(--on-copper);
+    font-weight: 600; font-size: 0.84rem; padding: 8px 14px; border-radius: 2px; cursor: pointer;
+    white-space: nowrap; font-family: inherit;
+  }
+  .a2hs-add-btn:hover { background: var(--copper); border-color: var(--copper); }
+  .a2hs-close {
+    background: none; border: none; font-size: 1.25rem; line-height: 1; color: var(--muted);
+    cursor: pointer; padding: 4px 6px;
+  }
+  .a2hs-never {
+    display: block; width: 100%; text-align: center; margin-top: 6px; padding: 2px;
+    background: none; border: none; font-family: inherit; font-size: 0.72rem;
+    color: var(--muted); text-decoration: underline; cursor: pointer;
+  }
+  @media (max-width: 480px) {
+    .a2hs-row { flex-wrap: wrap; }
+    .a2hs-msg { flex-basis: 100%; }
+  }
+
   @media (max-width: 600px) {
     #diatonic-grid { grid-template-columns: repeat(7, 1fr); gap: 4px; }
     .ratio-card { flex-direction: column; gap: 8px; }
@@ -1021,6 +1060,8 @@
 </script>
 
 <div id="audio-unlock" onclick="unlockAudio()">🔊 Tap to enable sound · iPhone: flip the side silent switch off</div>
+
+<div id="a2hs-banner" class="a2hs-banner"></div>
 
 <div id="app">
   <header>
@@ -1755,7 +1796,7 @@
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>History</strong> — how the system got built, and by whom.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Quiz</strong> — ninety-six questions, filterable by topic, every answer explaining the why rather than marking it right.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>About</strong> — this page: what the app is, who it's for, and who made it.</div>
-      <div style="padding:9px 0"><strong>Install it</strong> — the individual license turns Temperament into an app of its own. Add it to your phone's home screen and it opens full screen, no browser bar, and keeps working with no internet connection. <a href="pricing.html" style="color:var(--copper-text)">See pricing →</a></div>
+      <div style="padding:9px 0"><strong>Install it</strong> — on your phone, add Temperament to your home screen whenever you like, at no cost. It opens full screen, no browser bar, and works with no connection at all. <a href="pricing.html" style="color:var(--copper-text)">See pricing →</a></div>
     </div>
 
     <div class="section-label" style="margin:22px 0 10px">How this guide was made</div>
@@ -2254,6 +2295,144 @@ function loadQuizState() {
 }
 
 // ============================================================
+//  ADD-TO-HOME-SCREEN BANNER — a light, dismissible nudge toward the free
+//  install + offline experience every visitor already gets (the PWA,
+//  Build 20 — manifest + service worker register unconditionally, for
+//  free and paid visitors alike). This banner is never gated on license
+//  state; it exists purely to surface something that's already true.
+//
+//  Two platforms, two mechanisms, because they genuinely don't share one:
+//  Chromium (desktop + Android) exposes a real install signal —
+//  `beforeinstallprompt` — that this code can trigger programmatically.
+//  iOS Safari exposes no such event and no way to trigger the action from
+//  a page; that path is instruction-only (tap Share, then Add to Home
+//  Screen).
+//
+//  Trigger point: real engagement, not page load. The shared keyboard
+//  (`buildKeyboard`, below) is the one interaction point common to
+//  Circle of Fifths, Keys & Chords, The Modes, Ear Training, and the
+//  keyboard-driven Jazz lessons, so it is wired there once rather than in
+//  every panel's own play function; the Quiz doesn't use the keyboard, so
+//  `quizAnswer()` is wired separately. Counts are in-memory (this page
+//  load only) — a lightweight engagement signal, not a persisted stat.
+// ============================================================
+const NS_STORE_A2HS_SNOOZE = 'temperament_a2hs_snooze_until';
+const NS_STORE_A2HS_NEVER = 'temperament_a2hs_never';
+const NS_A2HS_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000; // ~1 week
+const NS_A2HS_KEY_THRESHOLD = 5;
+const NS_A2HS_QUIZ_THRESHOLD = 2;
+
+let nsA2HSDeferredPrompt = null;
+let nsA2HSKeyCount = 0;
+let nsA2HSQuizCount = 0;
+let nsA2HSShown = false; // offer at most once per page load
+
+// Captured as early as possible (script scope, not a load handler) since
+// Chromium can fire this any time once the PWA install criteria are met.
+// preventDefault() suppresses the browser's own mini-infobar so this
+// banner is the only install ask the visitor sees.
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  nsA2HSDeferredPrompt = e;
+});
+
+function nsA2HSIsIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+function nsA2HSIsSafari() {
+  // Excludes Chrome/Firefox/Edge on iOS (crios/fxios/edgios) and Android
+  // Chrome, all of which also carry "Safari" in their UA string.
+  var ua = navigator.userAgent;
+  return /^((?!chrome|android|crios|fxios|edgios|opr).)*safari/i.test(ua);
+}
+function nsA2HSIsStandalone() {
+  try {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  } catch (e) { return false; }
+}
+
+// Which flavor applies right now, if any. 'chromium' | 'ios' | null.
+function nsA2HSPlatform() {
+  if (nsA2HSIsStandalone()) return null; // already installed — nothing to offer
+  if (nsA2HSDeferredPrompt) return 'chromium';
+  if (nsA2HSIsIOS() && nsA2HSIsSafari()) return 'ios';
+  return null;
+}
+
+function nsA2HSTrackKey() {
+  nsA2HSKeyCount++;
+  if (nsA2HSKeyCount >= NS_A2HS_KEY_THRESHOLD) nsA2HSMaybeShow();
+}
+function nsA2HSTrackQuiz() {
+  nsA2HSQuizCount++;
+  if (nsA2HSQuizCount >= NS_A2HS_QUIZ_THRESHOLD) nsA2HSMaybeShow();
+}
+
+function nsA2HSMaybeShow() {
+  if (nsA2HSShown) return;
+  try {
+    if (nsStorageGet(NS_STORE_A2HS_NEVER) === '1') return;
+    var snoozeUntil = parseInt(nsStorageGet(NS_STORE_A2HS_SNOOZE), 10);
+    if (!isNaN(snoozeUntil) && Date.now() < snoozeUntil) return;
+  } catch (e) {}
+  var platform = nsA2HSPlatform();
+  if (!platform) return;
+  nsA2HSShown = true;
+  nsA2HSRender(platform);
+}
+
+function nsA2HSRender(platform) {
+  var el = document.getElementById('a2hs-banner');
+  if (!el) return;
+  var actionHTML = platform === 'chromium'
+    ? '<button class="a2hs-add-btn" onclick="nsA2HSInstallClick()">Add it</button>' +
+      '<button class="a2hs-close" onclick="nsA2HSDismiss()" aria-label="Dismiss">&times;</button>'
+    : '<button class="a2hs-close" onclick="nsA2HSDismiss()" aria-label="Dismiss">&times;</button>';
+  var msgHTML = platform === 'chromium'
+    ? 'Add Temperament to your home screen &mdash; free, and it works with no signal.'
+    : 'Add Temperament to your home screen: tap Share <span class="a2hs-icon">&#8963;</span>, then Add to Home Screen.';
+  el.innerHTML =
+    '<div class="a2hs-row">' +
+      '<div class="a2hs-msg">' + msgHTML + '</div>' +
+      '<div class="a2hs-actions">' + actionHTML + '</div>' +
+    '</div>' +
+    '<button class="a2hs-never" onclick="nsA2HSNeverAgain()">Don\'t ask again</button>';
+  el.classList.add('visible');
+}
+
+function nsA2HSHide() {
+  var el = document.getElementById('a2hs-banner');
+  if (el) el.classList.remove('visible');
+}
+
+// Snooze — the X and the (declined or dismissed) system install prompt
+// both land here. Roughly a week before it can ask again.
+function nsA2HSDismiss() {
+  nsStorageSet(NS_STORE_A2HS_SNOOZE, String(Date.now() + NS_A2HS_SNOOZE_MS));
+  nsA2HSHide();
+}
+// The clearer "no thanks" — stops asking permanently.
+function nsA2HSNeverAgain() {
+  nsStorageSet(NS_STORE_A2HS_NEVER, '1');
+  nsA2HSHide();
+}
+
+async function nsA2HSInstallClick() {
+  if (!nsA2HSDeferredPrompt) { nsA2HSDismiss(); return; }
+  var promptEvent = nsA2HSDeferredPrompt;
+  nsA2HSDeferredPrompt = null; // a captured prompt can only be used once
+  nsA2HSHide();
+  try {
+    promptEvent.prompt();
+    await promptEvent.userChoice;
+  } catch (e) {}
+  // The OS-level prompt has now been shown once either way; snooze rather
+  // than a hard "never" — declining that system dialog isn't the same
+  // deliberate signal as this banner's own "Don't ask again."
+  nsStorageSet(NS_STORE_A2HS_SNOOZE, String(Date.now() + NS_A2HS_SNOOZE_MS));
+}
+
+// ============================================================
 //  LICENSING — gates Jazz lessons 3–7, the Interval Trainer's Challenge
 //  mode, Ear Training's Chord Quality lesson, and the Quiz past a free
 //  sample. Client-side, no build step, no external file — the same
@@ -2274,7 +2453,9 @@ const NS_LICENSE_PUBLIC_KEY = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0hRI3w50cX21t
 const NS_LICENSE_WORKER = 'https://temperament-licensing.matthew-7ff.workers.dev';
 const NS_STORE_LICENSE_KEY = 'temperament.license';
 const NS_STORE_QUIZ_FREE_COUNT = 'temperament_quiz_free_count';
+const NS_STORE_QUIZ_FREE_RESET = 'temperament_quiz_free_count_reset';
 const NS_QUIZ_FREE_LIMIT = 10;
+const NS_QUIZ_FREE_RESET_EVERY_MS = 30 * 24 * 60 * 60 * 1000; // ~30 days
 const NS_JAZZ_FREE_COUNT = 2; // lessons 1–2 free (index 0,1); 3–7 locked
 
 // Cached, synchronous — every gating check below reads only this, exactly
@@ -2361,7 +2542,20 @@ async function nsCheckRevocation() {
   } catch (e) { /* offline or malformed — fail open, silent */ }
 }
 
+// The free count used to run "10, forever" — a persistent counter that
+// never cleared. Same timer pattern as the license revocation check
+// (NS_LICENSE_CHECK_EVERY_MS) above, just a 30-day window instead of a
+// daily one: if more than NS_QUIZ_FREE_RESET_EVERY_MS has passed since the
+// last reset (or none is recorded yet), zero the counter and stamp the
+// clock before returning — so "10, forever" becomes "10, resetting
+// periodically" with no separate reset step for callers to remember.
 function nsQuizFreeCount() {
+  var last = parseInt(nsStorageGet(NS_STORE_QUIZ_FREE_RESET), 10);
+  if (isNaN(last) || (Date.now() - last) >= NS_QUIZ_FREE_RESET_EVERY_MS) {
+    nsStorageSet(NS_STORE_QUIZ_FREE_COUNT, '0');
+    nsStorageSet(NS_STORE_QUIZ_FREE_RESET, String(Date.now()));
+    return 0;
+  }
   const n = parseInt(nsStorageGet(NS_STORE_QUIZ_FREE_COUNT), 10);
   return isNaN(n) ? 0 : n;
 }
@@ -2984,6 +3178,7 @@ function nsMakeKeyAccessible(el, name, semi, onKey) {
   el.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
       e.preventDefault();
+      nsA2HSTrackKey();
       onKey(semi);
     }
   });
@@ -2999,7 +3194,7 @@ function buildKeyboard(mount, onKey) {
     w.className = 'kb-white';
     w.dataset.semi = s;
     w.textContent = whiteNames[i];
-    w.onclick = function() { onKey(s); };
+    w.onclick = function() { nsA2HSTrackKey(); onKey(s); };
     nsMakeKeyAccessible(w, whiteNames[i], s, onKey);
     mount.appendChild(w);
   });
@@ -3008,7 +3203,7 @@ function buildKeyboard(mount, onKey) {
     k.className = 'kb-black';
     k.dataset.semi = b.s;
     k.style.left = (b.x * 12.5 - 3.6) + '%';
-    k.onclick = function() { onKey(b.s); };
+    k.onclick = function() { nsA2HSTrackKey(); onKey(b.s); };
     nsMakeKeyAccessible(k, BLACK_KEY_NAMES[b.s], b.s, onKey);
     mount.appendChild(k);
   });
@@ -3875,6 +4070,7 @@ function quizRender(){
 function quizAnswer(btn){
   if (quizLocked) return; quizLocked = true;
   quizTotal++;
+  nsA2HSTrackQuiz();
   if (!nsIsLicensed()) nsQuizIncrementFreeCount();
   const correct = btn.dataset.correct === '1';
   if (correct) quizScore++;
