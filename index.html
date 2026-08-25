@@ -162,7 +162,7 @@
 
   /* CIRCLE OF FIFTHS */
   #cof-container { display: flex; flex-direction: column; align-items: center; gap: 18px; }
-  #cof-wrap { position: relative; width: min(500px, 95vw); aspect-ratio: 1/1; }
+  #cof-wrap { position: relative; width: min(500px, 95vw); aspect-ratio: 1/1; margin-top: -20px; /* the SVG carries ~26px of built-in top whitespace; pull the wheel up toward the eyebrow (Build 25) */ }
   #cof-svg { width: 100%; height: 100%; display: block; }
   .cof-segment { cursor: pointer; transition: all 0.2s; }
   .cof-segment:hover { filter: brightness(1.15) saturate(1.1); }
@@ -2527,7 +2527,7 @@ function buildCOF() {
   const svg = document.getElementById('cof-svg');
   if (!svg || svg.children.length > 1) return; // already built
   const cx = 250, cy = 250;
-  const outerR = 220, midR = 165, innerR = 110, coreR = 60;
+  const outerR = 220, midR = 165, innerR = 110, coreR = 70; // hub widened Build 25 so the full title sits naturally
 
   function polarToXY(angle, r) {
     return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
@@ -2565,10 +2565,10 @@ function buildCOF() {
   // the size, the two small words set as quiet italic serif connectors. Sized up
   // from Build 16's 15px so there's no question what this page is about.
   [
-    { t: 'The',    dy: -34, size: 12, weight: '400', style: 'italic', fill: '#5a4f44', ls: '0.02em' },
-    { t: 'CIRCLE', dy: -12, size: 19, weight: '700', style: 'normal', fill: '#2d2521', ls: '0.04em' },
-    { t: 'of',     dy:   8, size: 12, weight: '400', style: 'italic', fill: '#5a4f44', ls: '0.02em' },
-    { t: 'FIFTHS', dy:  30, size: 19, weight: '700', style: 'normal', fill: '#2d2521', ls: '0.04em' },
+    { t: 'The',    dy: -38, size: 17, weight: '400', style: 'italic', fill: '#5a4f44', ls: '0.02em' },
+    { t: 'CIRCLE', dy: -13, size: 24, weight: '700', style: 'normal', fill: '#2d2521', ls: '0.03em' },
+    { t: 'of',     dy:   9, size: 17, weight: '400', style: 'italic', fill: '#5a4f44', ls: '0.02em' },
+    { t: 'FIFTHS', dy:  33, size: 24, weight: '700', style: 'normal', fill: '#2d2521', ls: '0.03em' },
   ].forEach(function(line){
     const el = document.createElementNS('http://www.w3.org/2000/svg','text');
     el.setAttribute('x', cx); el.setAttribute('y', cy + line.dy);
