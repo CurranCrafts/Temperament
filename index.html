@@ -2580,7 +2580,10 @@ async function nsActivateLicense(rawInput) {
       });
       const data = await res.json();
       if (!res.ok || !data.key) {
-        return { ok: false, msg: data.error === 'revoked' ? 'This license was refunded.' : 'That code wasn’t recognised.' };
+        let msg = 'That code wasn’t recognised.';
+        if (data.error === 'revoked') msg = 'This license was refunded.';
+        if (data.error === 'activation_limit_reached') msg = 'This code has already been used its allowed number of times. Contact us if that’s wrong.';
+        return { ok: false, msg: msg };
       }
       key = data.key;
     } catch (e) {

@@ -68,7 +68,7 @@
       <div class="amt">$19</div>
       <div class="per">one time</div>
       <p class="desc">Explore most of Temperament free, in any browser: the full Circle of Fifths, Keys &amp; Chords, The Modes, Mathematics, History, the Intervals lesson in Ear Training, the first two Jazz lessons, and the first ten Quiz questions. Buying unlocks the rest &mdash; the remaining five Jazz lessons, the Chord Quality lesson, and the other 86 Quiz questions. Licensed for your own personal use.</p>
-      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20individual%20license" data-role="buy-individual"><!-- Stays a mailto: link until the Paddle script at the foot of this page takes over the click. If checkout can't start, the email path is what's left. -->Buy &mdash; $19</a>
+      <a class="buy-btn lemonsqueezy-button" href="https://currancrafts.lemonsqueezy.com/checkout/buy/e6e52bb8-39f9-4008-9474-ac0eb76f573e" data-role="buy-individual"><!-- Lemon Squeezy checkout. lemon.js (foot of page) intercepts this click and opens it as an overlay; if the script fails to load, the href is a real, working checkout page on its own, so the click still lands. -->Buy &mdash; $19</a>
     </div>
     <div class="tier">
       <div class="name">Studio</div>
@@ -117,6 +117,10 @@
 
 </div>
 
+<!-- Lemon Squeezy: powers only the Individual button above (class="lemonsqueezy-button").
+     2.3kB, no config call needed — it watches the whole page for that class. -->
+<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
+
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 <script>
 (function () {
@@ -132,10 +136,12 @@
     // can only open a checkout. It is not the API key, which never goes here.
     token: "live_067724eb1d74279cac58e37599e",
 
-    // One price per self-serve tier. Institution charges its floor price
-    // ($1,200); a larger deal still goes through "Get in touch" beside it.
+    // One price per self-serve tier still on Paddle. Individual moved to
+    // Lemon Squeezy (see the lemon.js button above) and is deliberately left
+    // out of this map, so this script no longer touches that button at all.
+    // Institution charges its floor price ($1,200); a larger deal still goes
+    // through "Get in touch" beside it.
     priceIds: {
-      "buy-individual": "pri_01m0w3frrmvmvamxk20g2na9sp",
       "buy-studio": "pri_01m0w3frjncvbveg9s9x0za8av",
       "buy-department": "pri_01m0w3frcdnhhyy4a4xw3hdcmf",
       "buy-institution": "pri_01m0w3fr5s327cvwen8a74kvxc"
