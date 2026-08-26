@@ -75,7 +75,7 @@
       <div class="amt">$150</div>
       <div class="per">per year</div>
       <p class="desc">For one private teacher, up to 25 students. A private deployment at your own address, independent of the public version. The right to assign it on a syllabus and distribute it to your enrolled students. A syllabus map pairing each section of the app to the weeks of a standard theory sequence.</p>
-      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Studio%20license" data-role="buy-studio"><!-- Paddle checkout takes over the click once the script at the foot of this page initializes; mailto is what's left if it can't. -->Buy &mdash; $150/yr</a>
+      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Studio%20license" data-role="buy-studio"><!-- Lemon Squeezy checkout for this tier isn't built yet; this stays a plain mailto link until it is. -->Buy &mdash; $150/yr</a>
       <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Studio%20license">Get in touch</a>
     </div>
     <div class="tier">
@@ -84,7 +84,7 @@
       <div class="amt">$450</div>
       <div class="per">per year</div>
       <p class="desc">Everything in Studio, for one program with unlimited enrolled students, plus an hour with the maker: a live session for your faculty or your students, in person in the New York area or by video anywhere.</p>
-      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Department%20license" data-role="buy-department"><!-- Paddle checkout takes over the click once the script at the foot of this page initializes; mailto is what's left if it can't. -->Buy &mdash; $450/yr</a>
+      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Department%20license" data-role="buy-department"><!-- Lemon Squeezy checkout for this tier isn't built yet; this stays a plain mailto link until it is. -->Buy &mdash; $450/yr</a>
       <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Department%20license">Get in touch</a>
     </div>
     <div class="tier">
@@ -92,7 +92,7 @@
       <div class="amt">from $1,200</div>
       <div class="per">per year</div>
       <p class="desc">For multiple departments or a whole school of music. Scaled to enrollment, with a session for each program.</p>
-      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Institution%20license" data-role="buy-institution"><!-- Paddle checkout takes over the click once the script at the foot of this page initializes; mailto is what's left if it can't. -->Buy &mdash; from $1,200/yr</a>
+      <a class="buy-btn" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Institution%20license" data-role="buy-institution"><!-- Lemon Squeezy checkout for this tier isn't built yet; this stays a plain mailto link until it is. -->Buy &mdash; from $1,200/yr</a>
       <a class="buy-btn secondary" href="mailto:matthew@matthewcurran.net?subject=Temperament%20Institution%20license">Get in touch</a>
     </div>
   </div>
@@ -102,7 +102,7 @@
   </div>
 
   <h2>How to buy</h2>
-  <p>Every tier purchases instantly through checkout on this site. If you need an invoice, a purchase order, or a W&#8209;9 &mdash; the usual case for schools &mdash; write to <a href="mailto:matthew@matthewcurran.net">matthew@matthewcurran.net</a> instead and it's handled by hand.</p>
+  <p>Individual purchases instantly through checkout on this site. Studio, Department, and Institution are arranged directly &mdash; and if you need an invoice, a purchase order, or a W&#8209;9, the usual case for schools, write to <a href="mailto:matthew@matthewcurran.net">matthew@matthewcurran.net</a> and it's handled by hand.</p>
 
   <footer>
     <nav>
@@ -121,115 +121,6 @@
      2.3kB, no config call needed — it watches the whole page for that class. -->
 <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
 
-<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<script>
-(function () {
-  "use strict";
-
-  var PADDLE = {
-    // "sandbox" takes test cards only. Switch to "production" — and swap the
-    // token and price ID for their live equivalents — when you're ready to
-    // take real money. Sandbox and live IDs are not interchangeable.
-    environment: "production",
-
-    // The client-side token is public: it ships in this page's source, and it
-    // can only open a checkout. It is not the API key, which never goes here.
-    token: "live_067724eb1d74279cac58e37599e",
-
-    // One price per self-serve tier still on Paddle. Individual moved to
-    // Lemon Squeezy (see the lemon.js button above) and is deliberately left
-    // out of this map, so this script no longer touches that button at all.
-    // Institution charges its floor price ($1,200); a larger deal still goes
-    // through "Get in touch" beside it.
-    priceIds: {
-      "buy-studio": "pri_01m0w3frjncvbveg9s9x0za8av",
-      "buy-department": "pri_01m0w3frcdnhhyy4a4xw3hdcmf",
-      "buy-institution": "pri_01m0w3fr5s327cvwen8a74kvxc"
-    },
-
-    productionHost: "temperament.currancrafts.com"
-  };
-
-  var buttons = Array.prototype.filter.call(
-    document.querySelectorAll("[data-role]"),
-    function (el) { return Object.prototype.hasOwnProperty.call(PADDLE.priceIds, el.getAttribute("data-role")); }
-  );
-  if (buttons.length === 0) return;
-
-  // Every bail-out below just returns, which leaves the button as the mailto:
-  // link it already is. A visitor always has some way to reach a purchase.
-  function refuse(reason) {
-    if (window.console && console.warn) {
-      console.warn("Paddle checkout not enabled: " + reason + " Falling back to email.");
-    }
-  }
-
-  if (PADDLE.token.indexOf("REPLACE") !== -1) {
-    return refuse("no client token has been set yet.");
-  }
-
-  // A sandbox checkout on the live site would show real customers a payment
-  // form that only accepts test cards, and silently take no money. Paddle will
-  // not approve a checkout launched from localhost, though, so the only place a
-  // sandbox purchase can be rehearsed is the real domain. This flag is that
-  // door: opt in by hand, and nobody arrives through it by accident.
-  var isTestRun = window.location.search.indexOf("paddle-test=1") !== -1;
-
-  if (PADDLE.environment === "sandbox" && window.location.hostname === PADDLE.productionHost) {
-    if (!isTestRun) {
-      return refuse("sandbox configuration is live on " + PADDLE.productionHost + ".");
-    }
-    // Impossible to forget which mode you're in halfway through a test purchase.
-    var banner = document.createElement("div");
-    banner.textContent = "SANDBOX TEST MODE — test cards only, no real payment is taken";
-    banner.style.cssText =
-      "position:fixed;top:0;left:0;right:0;z-index:99999;background:#a85c32;color:#f6efdf;" +
-      "font:600 .78rem/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;" +
-      "text-align:center;padding:9px 12px;";
-    document.body.appendChild(banner);
-  }
-
-  if (typeof Paddle === "undefined") {
-    return refuse("paddle.js did not load.");
-  }
-
-  try {
-    // Environment must be set before Initialize, or the token is read against
-    // the wrong environment and checkout fails to open.
-    if (PADDLE.environment === "sandbox") {
-      Paddle.Environment.set("sandbox");
-    }
-
-    Paddle.Initialize({
-      token: PADDLE.token,
-      eventCallback: function (event) {
-        if (!event || !event.name) return;
-        if (event.name === "checkout.completed") {
-          console.log("Paddle: checkout completed.", event.data);
-        } else if (event.name === "checkout.error" || event.name === "checkout.payment-error") {
-          console.error("Paddle: " + event.name, event.data);
-        }
-      }
-    });
-  } catch (error) {
-    return refuse("initialization threw: " + error.message);
-  }
-
-  // Only now, with Paddle live, do the buttons stop being email links. Each
-  // one opens checkout for its own price; "Get in touch" beside it is
-  // untouched by any of this and always still works.
-  buttons.forEach(function (button) {
-    var priceId = PADDLE.priceIds[button.getAttribute("data-role")];
-    button.addEventListener("click", function (event) {
-      event.preventDefault();
-      Paddle.Checkout.open({
-        items: [{ priceId: priceId, quantity: 1 }],
-        settings: { variant: "one-page" }
-      });
-    });
-  });
-})();
-</script>
 
 </body>
 </html>
