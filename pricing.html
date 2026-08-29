@@ -121,6 +121,19 @@
      2.3kB, no config call needed — it watches the whole page for that class. -->
 <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
 
+<!-- Umami Cloud — cookieless analytics, same property as the app. Page views are
+     automatic; the one custom event is which Buy button gets pressed. -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="67200fa8-e8b0-427c-8546-16476d5274db" data-domains="temperament.currancrafts.com"></script>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target && e.target.closest ? e.target.closest("a[data-role]") : null;
+  if (!a) return;
+  var tier = a.getAttribute("data-role").replace("buy-", "");
+  var kind = /^mailto:/.test(a.getAttribute("href") || "") ? "email" : "checkout";
+  try { if (window.umami) umami.track("checkout_opened", { tier: tier, kind: kind }); } catch (err) {}
+});
+</script>
+
 
 </body>
 </html>

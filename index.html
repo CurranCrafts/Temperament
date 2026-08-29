@@ -1830,6 +1830,36 @@
 
 <script>
 // ============================================================
+//  ANALYTICS  (Umami Cloud, cookieless custom events — added 2026-08-29)
+//  nsTrack(name, props) is the ONLY call site the app uses. It is safe to
+//  call before the Umami script has loaded (events queue, then flush on
+//  script load), safe offline (Umami drops the beacon silently), and safe
+//  if the script never loads (the queue is capped and simply discarded).
+//  Nothing here sets a cookie or touches localStorage; the privacy policy's
+//  "cookieless, no consent banner" promise still holds.
+// ============================================================
+var nsTrackQueue = [];
+function nsTrack(name, props) {
+  try {
+    if (window.umami && typeof umami.track === 'function') { umami.track(name, props || {}); return; }
+    if (nsTrackQueue.length < 50) nsTrackQueue.push([name, props || {}]);
+  } catch (e) {}
+}
+function nsTrackFlush() {
+  try {
+    if (!(window.umami && typeof umami.track === 'function')) return;
+    var q = nsTrackQueue; nsTrackQueue = [];
+    q.forEach(function(ev){ try { umami.track(ev[0], ev[1]); } catch (e) {} });
+  } catch (e) {}
+}
+// Belt and braces: the script tag's onload calls nsTrackFlush(); this poll
+// covers the case where umami appeared but the onload attribute did not fire.
+(function(){ var tries = 0; var h = setInterval(function(){ nsTrackFlush(); if (++tries > 20 || !nsTrackQueue.length && window.umami) clearInterval(h); }, 750); })();
+function nsViewportBucket() {
+  try { var w = window.innerWidth; return w < 480 ? 'phone' : (w < 900 ? 'tablet' : 'desktop'); } catch (e) { return 'unknown'; }
+}
+
+// ============================================================
 //  ERROR SAFETY NET  (added 2026-06-19 — keeps one failure from blanking the whole app)
 // ============================================================
 (function(){
@@ -1852,6 +1882,7 @@
     try { return fn(); }
     catch (err){
       console.error('[Nature\'s Signal] "' + (label||'section') + '" failed to build:', err);
+      nsTrack('panel_build_failed', { panel: String(label||'section'), msg: String(err && err.message || err).slice(0,120) });
       showErrorNotice('A problem stopped "' + (label||'a section') + '" from loading. The rest of the app still works — try reloading.');
     }
   };
@@ -1860,7 +1891,7 @@
     if(!e || !e.message) return; // ignore resource-load (e.g. font) noise
     console.error('[Nature\'s Signal] runtime error:', e.message, e.filename, e.lineno);
     showErrorNotice('Something glitched. If a section looks blank, reload the page.');
-    // SHIP STEP: forward to an error-reporting service (e.g. Sentry) here.
+    nsTrack('js_error', { msg: String(e.message).slice(0,120), line: String(e.lineno||''), file: String(e.filename||'').slice(-40) });
   });
   window.addEventListener('unhandledrejection', function(e){
     console.error('[Nature\'s Signal] unhandled promise rejection:', e && e.reason);
@@ -2335,6 +2366,14 @@ window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   nsA2HSDeferredPrompt = e;
 });
+// Chromium fires this once the app is actually installed. iOS never fires it;
+// iOS installs show up instead as app_opened with standalone:'yes'.
+window.addEventListener('appinstalled', function() {
+  nsTrack('a2hs_installed', { platform: nsA2HSPlatform() || 'unknown' });
+});
+document.addEventListener('DOMContentLoaded', function() {
+  nsTrack('app_opened', { standalone: nsA2HSIsStandalone() ? 'yes' : 'no', viewport: nsViewportBucket(), licensed: nsIsLicensed() ? 'yes' : 'no' });
+});
 
 function nsA2HSIsIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -2361,6 +2400,7 @@ function nsA2HSPlatform() {
 
 function nsA2HSTrackKey() {
   nsA2HSKeyCount++;
+  if (nsA2HSKeyCount === 1) nsTrack('first_key');
   if (nsA2HSKeyCount >= NS_A2HS_KEY_THRESHOLD) nsA2HSMaybeShow();
 }
 function nsA2HSTrackQuiz() {
@@ -2384,6 +2424,7 @@ function nsA2HSMaybeShow() {
 function nsA2HSRender(platform) {
   var el = document.getElementById('a2hs-banner');
   if (!el) return;
+  nsTrack('a2hs_banner_shown', { platform: platform });
   var actionHTML = platform === 'chromium'
     ? '<button class="a2hs-add-btn" onclick="nsA2HSInstallClick()">Add it</button>' +
       '<button class="a2hs-close" onclick="nsA2HSDismiss()" aria-label="Dismiss">&times;</button>'
@@ -2424,7 +2465,8 @@ async function nsA2HSInstallClick() {
   nsA2HSHide();
   try {
     promptEvent.prompt();
-    await promptEvent.userChoice;
+    var choice = await promptEvent.userChoice;
+    nsTrack('a2hs_prompt', { outcome: (choice && choice.outcome) || 'unknown' });
   } catch (e) {}
   // The OS-level prompt has now been shown once either way; snooze rather
   // than a hard "never" — declining that system dialog isn't the same
@@ -2567,6 +2609,14 @@ function nsQuizIncrementFreeCount() {
 // short code costs one network call to resolve to the real key; the key
 // itself verifies fully offline from then on, same as pasting it directly.
 async function nsActivateLicense(rawInput) {
+  var rawT = (rawInput || '').trim();
+  var method = /^[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$/.test(rawT) ? 'code' : (rawT ? 'key' : 'empty');
+  var r = await nsActivateLicenseInner(rawInput);
+  nsTrack('unlock_attempt', { method: method, result: r.ok ? 'ok' : String(r.msg || 'failed').slice(0,80) });
+  if (r.ok) nsTrack('unlock_success', { method: method });
+  return r;
+}
+async function nsActivateLicenseInner(rawInput) {
   const raw = (rawInput || '').trim();
   if (!raw) return { ok: false, msg: 'Enter a license key.' };
 
@@ -2603,6 +2653,7 @@ async function nsActivateLicense(rawInput) {
 
 // Shared markup for every locked-content card. `label` names what's behind it.
 function nsLockCardHTML(label) {
+  nsTrack('paywall_shown', { feature: String(label) });
   return '' +
     '<div class="ns-lock-card">' +
       '<div class="ns-lock-title">Unlock ' + label + '</div>' +
@@ -2612,7 +2663,7 @@ function nsLockCardHTML(label) {
         '<button class="sel-btn" onclick="nsHandleUnlockClick(this)">Unlock</button>' +
       '</div>' +
       '<div class="ns-lock-msg" id="ns-lock-msg"></div>' +
-      '<a class="ns-lock-buy" href="pricing.html">Get Temperament →</a>' +
+      '<a class="ns-lock-buy" href="pricing.html" data-feature="' + String(label).replace(/"/g, '') + '" onclick="nsTrack(\'buy_link_clicked\', { feature: this.getAttribute(\'data-feature\') })">Get Temperament →</a>' +
     '</div>';
 }
 
@@ -2657,6 +2708,7 @@ const panelBuilt = {};
 
 function showPanel(id) {
   saveLastPanel(id);
+  nsTrack('panel_opened', { panel: String(id) });
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   var panel = document.getElementById(id + '-panel');
@@ -3543,6 +3595,7 @@ function ivSetMode(mode) {
   document.getElementById('iv-mode-explore').classList.toggle('active', mode === 'explore');
   document.getElementById('iv-mode-challenge').classList.toggle('active', mode === 'challenge');
   var challengeLocked = (mode === 'challenge') && !nsIsLicensed();
+  if (mode === 'challenge') nsTrack('lesson_opened', { track: 'ear', lesson: 'interval_challenge', locked: challengeLocked ? 'yes' : 'no' });
   document.getElementById('iv-challenge-controls').style.display = (mode === 'challenge' && !challengeLocked) ? 'block' : 'none';
   var challengeLock = document.getElementById('iv-challenge-lock');
   if (challengeLock) {
@@ -3647,6 +3700,7 @@ function earGuess(semi) {
 var EAR_LESSONS = ['intervals', 'chords'];
 function earShowLesson(which){
   var showLock = (which === 'chords') && !nsIsLicensed();
+  nsTrack('lesson_opened', { track: 'ear', lesson: String(which), locked: showLock ? 'yes' : 'no' });
   EAR_LESSONS.forEach(function(k){
     var mod = document.getElementById('ear-mod-' + k);
     if (mod) mod.classList.toggle('active', k === which && !(k === 'chords' && showLock));
@@ -4010,6 +4064,7 @@ function quizBuildPool(){
     ids.forEach(i => quizSeen.delete(i));
     unseen = ids.slice();
     quizJustWrapped = true;
+    nsTrack('quiz_round_done', { category: String(quizCat), questions: String(ids.length) });
   }
   quizPool = quizShuffle(unseen);
   quizIdx = 0;
@@ -4077,6 +4132,7 @@ function quizAnswer(btn){
   if (!nsIsLicensed()) nsQuizIncrementFreeCount();
   const correct = btn.dataset.correct === '1';
   if (correct) quizScore++;
+  nsTrack('quiz_answered', { category: String(quizCat), correct: correct ? 'yes' : 'no', n: String(quizTotal) });
   document.querySelectorAll('#quiz-opts .quiz-opt').forEach(o => {
     o.disabled = true;
     if (o.dataset.correct === '1') o.classList.add('correct');
@@ -4143,6 +4199,7 @@ NS.jazz = (function(){
     document.getElementById('jazz-lesson').style.display = 'block';
     document.querySelectorAll('#jazz-lesson .jazz-lesson-content').forEach(function(el){ el.style.display = 'none'; });
     var locked = (i >= NS_JAZZ_FREE_COUNT) && !nsIsLicensed();
+    nsTrack('lesson_opened', { track: 'jazz', lesson: L.id, locked: locked ? 'yes' : 'no' });
     var lockEl = document.getElementById('jazz-lesson-lock');
     if (locked) {
       if (lockEl) { lockEl.style.display = 'block'; lockEl.innerHTML = nsLockCardHTML(L.n); }
@@ -4663,6 +4720,12 @@ NS.m7 = (function(){
 NS.jazz.register({ id:'m7', n:'Time and Feel', blurb:'Straight vs swing — where the off-beat sits', init:function(){ NS.m7.init(); } });
 </script>
 
+<!-- Umami Cloud — cookieless product analytics (which sections open, where the
+     paywall is hit, whether unlocks succeed). Custom events go through nsTrack()
+     in the main script. data-domains keeps local/file testing out of the data.
+     Sets no cookies; no consent banner required. -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="67200fa8-e8b0-427c-8546-16476d5274db" data-domains="temperament.currancrafts.com" onload="nsTrackFlush()"></script>
+<!-- End Umami -->
 <!-- Cloudflare Web Analytics — free, cookieless, no consent banner required.
      Loads after the page (type=module is deferred), fails silently offline,
      and sets no cookies, so it does not change the privacy posture. -->

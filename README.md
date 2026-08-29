@@ -20,23 +20,20 @@ see `pricing.html`.
 
 ## What's in this folder
 
-Five files, all meant to sit at the root of the `CurranCrafts/Temperament`
+Ten files, all meant to sit at the root of the `CurranCrafts/Temperament`
 repository, replacing what's there now:
 
-- `index.html` — the app itself. Includes the updated About panel (a
-  scannable features list replaces the old one-paragraph "how to use it")
-  and a footer linking to the four pages below.
-- `pricing.html` — the four license tiers.
-- `terms.html` — Terms and Conditions, including the required Paddle
-  Merchant-of-Record disclosure.
+- `index.html` — the app itself.
+- `pricing.html` — the four license tiers. Individual ($19) checks out
+  through Lemon Squeezy and is live with real money. Studio, Department,
+  and Institution are `mailto:` links until their Lemon Squeezy products
+  exist (Paddle is no longer used anywhere in this project).
+- `terms.html` — Terms and Conditions, naming Lemon Squeezy as Merchant of
+  Record.
 - `privacy.html` — Privacy Policy.
 - `refund.html` — Refund Policy.
-
-These five pages are what Paddle's domain review expects to find: a clear
-product description, pricing, and the three legal documents, all reachable
-from navigation. The checkout button on `pricing.html` currently points to a
-`mailto:` link as an interim measure; it gets wired to real Paddle checkout
-once the licensing Worker is built.
+- `manifest.webmanifest`, `sw.js` — PWA install + offline support.
+- `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` — PWA icons.
 
 ## Publishing an update
 
@@ -45,17 +42,25 @@ interactive app must be named exactly `index.html`. To publish:
 
 1. In the Cortex vault, the current master of the app is
    `Vault/10_projects/Nature's Signal/temperament.html`. This `_publish`
-   folder's `index.html` should always be a copy of that master (with the
-   About panel and footer changes noted above).
-2. On GitHub, open the `CurranCrafts/Temperament` repository, choose **Add
-   file → Upload files**, and drag in all five files from this folder at
-   once. GitHub's uploader accepts multiple files in a single commit and
-   replaces any file with a matching name, so this one step updates the app
-   and adds the four new pages together.
-3. Commit the changes. Pages redeploys in about a minute.
+   folder's `index.html` should always be a byte-identical copy of that
+   master.
+2. Copy the changed files from this folder into the local clone at
+   `~/Documents/GitHub/Temperament`, then commit and push with GitHub
+   Desktop. (GitHub's web uploader — Add file → Upload files, dragging in
+   the changed files at once — is the fallback when the local clone isn't
+   reachable.)
+3. Pages redeploys in about a minute.
 
 Do not upload a `.zip`. GitHub stores it as a zip file and never unpacks it,
 so nothing is replaced and the site does not change.
+
+**Not part of this folder, and never belongs in the `Temperament` repo:**
+`src/index.js` is the Cloudflare licensing Worker's source
+(`_work/temperament-licensing-worker/` in this project folder) — a separate
+service deployed with `npx wrangler deploy`, not a website file. If it ever
+ends up in the GitHub repo clone, it's inert there (GitHub Pages just serves
+it as an unused static file) but it doesn't belong and isn't part of this
+publish set.
 
 ---
 

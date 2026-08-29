@@ -37,9 +37,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // Only GET, only same-origin. Paddle, the licensing Worker (/activate,
-  // /status on workers.dev), and any other cross-origin call pass through
-  // untouched — the SW must never sit between the app and licensing.
+  // Only GET, only same-origin. Lemon Squeezy checkout, the licensing
+  // Worker (/activate, /status on workers.dev), and any other cross-origin
+  // call pass through untouched — the SW must never sit between the app
+  // and licensing.
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
