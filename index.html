@@ -167,6 +167,15 @@
   .cof-segment { cursor: pointer; transition: all 0.2s; }
   .cof-segment:hover { filter: brightness(1.15) saturate(1.1); }
   .cof-segment.selected { filter: brightness(1.3) saturate(1.3); stroke-width: 2; }
+  /* First-visit orientation nudge: pulses the C wedge until the wheel is
+     touched (any wedge, not just C) or a session finds it already touched.
+     Layered on top of .selected, not a replacement — same filter property,
+     oscillating past .selected's static values and back. */
+  @keyframes cofPulse {
+    0%, 100% { filter: brightness(1.3) saturate(1.3); stroke-width: 2; }
+    50%      { filter: brightness(1.75) saturate(1.6); stroke-width: 2; }
+  }
+  .cof-segment.cof-pulse { animation: cofPulse 1.6s ease-in-out infinite; }
 
   #cof-info {
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
@@ -940,6 +949,48 @@
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); border: 1px solid var(--muted);
   }
 
+  /* FRONT DOOR — one-time first-visit orientation screen (2026-09-02).
+     Same job as #audio-unlock (consent to make sound + get oriented) but
+     richer, and shown once ever instead of on every suspended load. A full
+     screen, not a banner, so it reads as an entry gate: one CTA, no second
+     button, no skip link — an orientation screen that offers an exit
+     undercuts its own reason for existing. */
+  #front-door {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--bg);
+    align-items: center; justify-content: center;
+    padding: 15vh 24px 9vh; /* title sits higher; bottom padding is where the button lands */
+  }
+  #front-door.visible { display: flex; animation: fadeIn 0.4s ease; }
+  .front-door-card {
+    max-width: 420px; width: 100%; text-align: center; font-family: 'Source Sans 3', system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 76vh; /* 100vh minus the two paddings above, so the auto-margin below has room to push into */
+  }
+  .front-door-mark {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.3rem, 4.5vw, 1.9rem); color: var(--ink);
+    letter-spacing: 0.06em; margin-bottom: 4px;
+  }
+  .front-door-mark .fd-flourish { color: var(--copper-text); }
+  .front-door-tagline {
+    font-style: italic; color: var(--muted); font-size: 1rem;
+    margin-bottom: 30px; letter-spacing: 0.03em;
+  }
+  .front-door-body { font-size: 1.02rem; line-height: 1.6; color: var(--ink); margin-bottom: 8px; }
+  .front-door-body + .front-door-body { margin-top: 22vh; } /* separate thought, AND pushes this line toward the vertical center of the screen */
+  .front-door-cta-wrap { margin: 26px 0 0; }
+  .front-door-note { font-size: 0.86rem; color: var(--muted); margin-top: 18px; margin-bottom: 0; }
+  .front-door-cta {
+    background: var(--copper-light); border: 1px solid var(--muted); color: var(--on-copper);
+    font-weight: 600; font-size: 1rem; padding: 15px 32px; border-radius: 2px; cursor: pointer;
+    font-family: 'Source Sans 3', system-ui, sans-serif; letter-spacing: 0.04em;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    margin-top: auto; /* pushes the button (and the note right after it) down the card, away from the title block */
+  }
+  .front-door-cta:hover { background: var(--copper); }
+
   /* ADD-TO-HOME-SCREEN BANNER — a light nudge toward the free install +
      offline experience every visitor already gets (see the PWA, Build 20).
      Bottom strip rather than #audio-unlock's centered pill: this one carries
@@ -1061,12 +1112,34 @@
 
 <div id="audio-unlock" onclick="unlockAudio()">🔊 Tap to enable sound · iPhone: flip the side silent switch off</div>
 
+<div id="front-door" role="dialog" aria-modal="true" aria-labelledby="front-door-title">
+  <div class="front-door-card">
+    <p class="front-door-mark" id="front-door-title"><span class="fd-flourish">✦</span> Temperament <span class="fd-flourish">✦</span></p>
+    <p class="front-door-tagline">The Nature of Music</p>
+    <p class="front-door-body">An interactive music-theory environment.<br>See it. Hear it. Understand it.</p>
+    <p class="front-door-body">Every screen here makes sound.<br>Tap something, and listen.</p>
+    <button type="button" class="front-door-cta" onclick="dismissFrontDoor()">Begin</button>
+    <p class="front-door-note">(On iPhone, flip the silent switch off first.)</p>
+  </div>
+</div>
+<script>
+// Show the front door only on a genuinely first-ever visit — synchronous, so
+// it's decided before first paint and there's no flash of the app underneath.
+(function() {
+  try {
+    if (!window.localStorage.getItem('temperament_front_door_seen')) {
+      document.getElementById('front-door').classList.add('visible');
+    }
+  } catch (e) { /* storage unavailable — fail open, no front door */ }
+})();
+</script>
+
 <div id="a2hs-banner" class="a2hs-banner"></div>
 
 <div id="app">
   <header>
     <h1><span class="h1-flourish">✦</span>Temperament<span class="h1-flourish">✦</span></h1>
-    <p class="subtitle">The Nature of Western Music Theory</p>
+    <p class="subtitle">The Nature of Music</p>
   </header>
 
   <nav id="nav" aria-label="Sections">
@@ -1943,6 +2016,18 @@ const COF_MAJOR = ['C','G','D','A','E','B','F♯/G♭','D♭','A♭','E♭','B�
 const COF_MINOR = ['Am','Em','Bm','F♯m','C♯m','G♯m','D♯m/E♭m','B♭m','Fm','Cm','Gm','Dm'];
 const SHARPS_FLATS = CIRCLE_PCS.map(function(pc,i){ return i===6 ? '6♯/6♭' : (i<6 ? i+'♯' : (12-i)+'♭'); });
 
+// Key-signature accidentals in real key-signature order (not alphabetical) —
+// used to draw the actual sharp/flat letters on the wheel (2026-09-02 build),
+// replacing a bare accidental count. Each key's label is the first N entries.
+const SIG_SHARP_ORDER = ['F♯','C♯','G♯','D♯','A♯','E♯','B♯'];
+const SIG_FLAT_ORDER  = ['B♭','E♭','A♭','D♭','G♭','C♭','F♭'];
+// Fixed staff position (line/space count from the bottom) per accidental — this
+// is why the label zigzags instead of stacking in reading order: sharps ascend
+// by fifths, flats descend by fifths, and each symbol sits at its own fixed
+// vertical spot on a real staff.
+const SIG_SHARP_STAFF_POS = { 'F♯':1, 'C♯':5, 'G♯':2, 'D♯':6, 'A♯':3, 'E♯':7, 'B♯':4 };
+const SIG_FLAT_STAFF_POS  = { 'B♭':4, 'E♭':7, 'A♭':3, 'D♭':6, 'G♭':2, 'C♭':5, 'F♭':1 };
+
 const MAJOR_SCALE = [0,2,4,5,7,9,11]; // semitone intervals from root
 const MINOR_SCALE = [0,2,3,5,7,8,10];
 
@@ -2097,11 +2182,30 @@ function unlockAudio() {
   src.start(0);
 }
 
-// Show unlock banner if audio context starts suspended (iOS default)
+// Dismiss the one-time front door: hide it, unlock audio (same action the
+// thin banner performs on tap), and remember it forever so it never shows
+// again on this device. Also starts the C-wedge pulse on the very first
+// visit (nsStartWheelPulse is a no-op after the wheel has been touched, or
+// on any later visit — see buildCOF()).
+function dismissFrontDoor() {
+  try { window.localStorage.setItem(NS_STORE_FRONT_DOOR, '1'); } catch (e) {}
+  const fd = document.getElementById('front-door');
+  if (fd) { fd.classList.remove('visible'); fd.style.display = 'none'; }
+  unlockAudio();
+  if (typeof nsStartWheelPulse === 'function') nsStartWheelPulse();
+}
+
+// Show unlock banner if audio context starts suspended (iOS default) — but
+// only for a returning visitor. A first-ever visit gets the front door
+// instead (see the sync script right after #front-door in the markup);
+// showing this thin banner too would mean two "tap to enable sound" prompts
+// stacked on top of each other.
 window.addEventListener('load', () => {
   try {
     const ctx = getAudioCtx();
-    if (ctx.state === 'suspended') {
+    let frontDoorSeen = true;
+    try { frontDoorSeen = !!window.localStorage.getItem(NS_STORE_FRONT_DOOR); } catch (e) {}
+    if (ctx.state === 'suspended' && frontDoorSeen) {
       document.getElementById('audio-unlock').style.display = 'block';
     }
   } catch(e) {}
@@ -2301,6 +2405,27 @@ var EAR_POOL = null; // populated after INTERVALS defined
 // ============================================================
 const NS_STORE_PANEL = 'temperament_last_panel';
 const NS_STORE_QUIZ = 'temperament_quiz_state';
+const NS_STORE_FRONT_DOOR = 'temperament_front_door_seen';
+const NS_STORE_WHEEL_TOUCHED = 'temperament_wheel_touched';
+
+// Pulse the C wedge until the wheel is touched — orientation for a first-time
+// visitor staring at twelve look-alike wedges. Starts once, right after the
+// front door dismisses (see dismissFrontDoor); stops the instant ANY wedge
+// gets a real click (see selectKey's `silent` guard below), and remembers
+// that permanently so the pulse can never come back, even if C itself was
+// never the wedge tapped.
+function nsStartWheelPulse() {
+  try { if (window.localStorage.getItem(NS_STORE_WHEEL_TOUCHED)) return; } catch (e) {}
+  document.querySelectorAll('.cof-segment[data-key="C"]').forEach(function(el) {
+    el.classList.add('cof-pulse');
+  });
+}
+function nsStopWheelPulse() {
+  try { window.localStorage.setItem(NS_STORE_WHEEL_TOUCHED, '1'); } catch (e) {}
+  document.querySelectorAll('.cof-pulse').forEach(function(el) {
+    el.classList.remove('cof-pulse');
+  });
+}
 
 function nsStorageGet(key) {
   try { return window.localStorage.getItem(key); } catch (e) { return null; }
@@ -2782,6 +2907,126 @@ function buildCOF() {
     return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
   }
 
+  // Draws one cluster of key-signature accidentals ON an actual small 5-line
+  // staff (positions 0,2,4,6,8 from the bottom — position 4 is the middle
+  // line), fixed and identical for every wedge, so the vertical offsets read
+  // as a staff instead of an arbitrary stagger. baseY is where position 4
+  // (the middle line) sits; every other position is baseY offset by
+  // (pos-4)*pxPerStep. Every accidental in real treble-clef key signatures
+  // sits within these 5 lines — no ledger lines needed, ever — so all
+  // positions here stay 0–8.
+  function drawSigCluster(symbols, posMap, cx0, baseY, pxPerStep, fontSize, staffHalfWidth) {
+    if (!symbols.length) return;
+    const lineColor = 'rgba(61,47,34,0.45)';
+    function hLine(x1, x2, y) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', x1); line.setAttribute('x2', x2);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      line.setAttribute('stroke', lineColor);
+      line.setAttribute('stroke-width', '0.75');
+      line.setAttribute('style','pointer-events:none');
+      svg.appendChild(line);
+    }
+    const staffLeft = cx0 - staffHalfWidth, staffRight = cx0 + staffHalfWidth;
+    // The 5 staff lines — drawn first, so the clef and accidentals sit on top.
+    for (let p = 0; p <= 8; p += 2) {
+      hLine(staffLeft, staffRight, baseY - (p - 4) * pxPerStep);
+    }
+    // Treble clef at the staff's left edge — this is what actually orients a
+    // bare set of symbols to a specific staff; without it the accidentals
+    // are just marks with no home. Rough-centered on line 2 (the "G line"),
+    // where a treble clef's spiral sits.
+    const clef = document.createElementNS('http://www.w3.org/2000/svg','text');
+    clef.setAttribute('x', staffLeft - 1);
+    clef.setAttribute('y', baseY - (2 - 4) * pxPerStep + pxPerStep * 5.2);
+    clef.setAttribute('text-anchor', 'end');
+    clef.setAttribute('fill', '#3d2f22');
+    clef.setAttribute('font-size', pxPerStep * 15.2);
+    clef.setAttribute('font-family', "'Noto Music', 'Bravura Text', 'Apple Symbols', 'Segoe UI Symbol', serif");
+    clef.setAttribute('style','pointer-events:none');
+    clef.textContent = '\u{1D11E}';
+    svg.appendChild(clef);
+    // Sharps and flats are drawn as fixed vector shapes, not font glyphs.
+    // A font-rendered ♯/♭ depends on whatever font the browser substitutes
+    // for that character, and that substitution is not the same shape, size,
+    // or baseline across engines — the exact instability that made these
+    // collide on one device and look fine on another. A hand-built <path>/
+    // <line> shape is pixel-identical everywhere Chrome or Safari draws SVG.
+    function sharpGlyph(x, y, s) {
+      const ink = '#3d2f22';
+      const sw = Math.max(1, s * 0.12);
+      const halfW = s * 0.20, halfH = s * 0.30, tilt = s * 0.055, overhang = s * 0.05;
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('style','pointer-events:none');
+      [x - halfW, x + halfW].forEach(function(vx) {
+        const v = document.createElementNS('http://www.w3.org/2000/svg','line');
+        v.setAttribute('x1', vx); v.setAttribute('x2', vx);
+        v.setAttribute('y1', y - halfH); v.setAttribute('y2', y + halfH);
+        v.setAttribute('stroke', ink); v.setAttribute('stroke-width', sw);
+        v.setAttribute('stroke-linecap', 'round');
+        g.appendChild(v);
+      });
+      [-1, 1].forEach(function(dir) {
+        const barY = y + dir * s * 0.16;
+        const h = document.createElementNS('http://www.w3.org/2000/svg','line');
+        h.setAttribute('x1', x - halfW - overhang); h.setAttribute('y1', barY + tilt);
+        h.setAttribute('x2', x + halfW + overhang); h.setAttribute('y2', barY - tilt);
+        h.setAttribute('stroke', ink); h.setAttribute('stroke-width', sw);
+        h.setAttribute('stroke-linecap', 'round');
+        g.appendChild(h);
+      });
+      svg.appendChild(g);
+    }
+    function flatGlyph(x, y, s) {
+      const ink = '#3d2f22';
+      const sw = Math.max(1, s * 0.11);
+      const stemX = x - s * 0.14;
+      const stemTopY = y - s * 0.34, stemBottomY = y + s * 0.16;
+      const stem = document.createElementNS('http://www.w3.org/2000/svg','line');
+      stem.setAttribute('x1', stemX); stem.setAttribute('y1', stemTopY);
+      stem.setAttribute('x2', stemX); stem.setAttribute('y2', stemBottomY);
+      stem.setAttribute('stroke', ink); stem.setAttribute('stroke-width', sw);
+      stem.setAttribute('stroke-linecap', 'round');
+      stem.setAttribute('style','pointer-events:none');
+      svg.appendChild(stem);
+      const bowlTopY = y - s * 0.08;
+      const bowl = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const d = 'M ' + stemX + ' ' + bowlTopY +
+        ' C ' + (stemX + s * 0.34) + ' ' + (bowlTopY - s * 0.02) +
+        ' ' + (stemX + s * 0.31) + ' ' + (stemBottomY + s * 0.08) +
+        ' ' + stemX + ' ' + stemBottomY;
+      bowl.setAttribute('d', d);
+      bowl.setAttribute('fill', 'none');
+      bowl.setAttribute('stroke', ink); bowl.setAttribute('stroke-width', sw);
+      bowl.setAttribute('stroke-linecap', 'round');
+      bowl.setAttribute('style','pointer-events:none');
+      svg.appendChild(bowl);
+    }
+    // Real engraving alternates each accidental's horizontal position based on
+    // its neighbor ON THE STAFF, not the order it happens to appear in the
+    // sharp/flat sequence (F♯ C♯ G♯ D♯ A♯ E♯ B♯ zigzags in pitch, not in
+    // staff height). Rank by actual vertical position first, then alternate —
+    // otherwise two symbols that are visually adjacent can land on the same
+    // side and read as one merged glyph.
+    const byPos = symbols.slice().sort(function(a, b) { return posMap[a] - posMap[b]; });
+    const size = parseFloat(fontSize);
+    // Real engraving reuses a small, fixed number of horizontal columns rather
+    // than fanning wider as a cluster gets denser — a 6-sharp key signature
+    // isn't twice as WIDE as a 3-sharp one, it's just packed tighter. Three
+    // lanes, cycled by rank, keeps every cluster the same footprint; lane
+    // spacing (not lane count) is what has to clear the glyph height.
+    const mag = size * 0.54;
+    symbols.forEach(function(sym) {
+      const pos = posMap[sym];
+      const isSharp = sym.slice(-1) === '♯';
+      const rank = byPos.indexOf(sym);
+      const lane = rank % 3; // 0,1,2 -> left, center, right
+      const dx = (lane - 1) * mag;
+      const y = baseY - (pos - 4) * pxPerStep; // higher staff position = smaller SVG y
+      if (isSharp) sharpGlyph(cx0 + dx, y, size); else flatGlyph(cx0 + dx, y, size);
+    });
+  }
+
   function arcPath(r1, r2, startA, endA) {
     const [x1,y1] = polarToXY(startA, r2);
     const [x2,y2] = polarToXY(endA, r2);
@@ -2884,14 +3129,19 @@ function buildCOF() {
     const minorLabel = document.createElementNS('http://www.w3.org/2000/svg','text');
     minorLabel.setAttribute('x', mx); minorLabel.setAttribute('y', my+4);
     minorLabel.setAttribute('text-anchor','middle');
-    minorLabel.setAttribute('fill', '#5a4a39');
-    minorLabel.setAttribute('font-size','10');
+    minorLabel.setAttribute('fill', '#3d2f22');
+    minorLabel.setAttribute('font-size','12');
     minorLabel.setAttribute('font-family','Source Sans 3, system-ui, sans-serif');
     minorLabel.setAttribute('style','pointer-events:none');
     minorLabel.textContent = COF_MINOR[i];
     svg.appendChild(minorLabel);
 
-    // Key sig label
+    // Key sig label — reverted to the original bare-count display
+    // (e.g. "3♭") for this deploy. The zigzag/staff rendering (drawSigCluster
+    // and the SIG_* tables above) is paused mid-revision per Matthew's
+    // 2026-09-02 direction — left defined-but-unused in this file so the
+    // in-progress work isn't lost, just not wired up to the render. See
+    // KEY-SIGNATURES-HANDOFF.md for where that work stands.
     const [kx, ky] = polarToXY(midA, outerR + 17);
     const sigLabel = document.createElementNS('http://www.w3.org/2000/svg','text');
     sigLabel.setAttribute('x', kx); sigLabel.setAttribute('y', ky+3);
@@ -2920,6 +3170,10 @@ function buildCOF() {
   }
 
   function selectKey(key, idx, isMinor, silent) {
+    // A real click (not the load-time silent default) ends the orientation
+    // pulse for good — reuses the click path every wedge already has instead
+    // of a second listener system.
+    if (!silent && typeof nsStopWheelPulse === 'function') nsStopWheelPulse();
     selectedKey = key;
 
     const rootSemitone = KEY_ROOT[key];
