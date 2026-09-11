@@ -470,18 +470,18 @@
   .mode-btn.active { background: var(--copper-light); border-color: var(--copper-light); color: var(--on-copper); }
 
   .iv-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 16px; }
-  /* The thirteen interval chips used to wrap freely, which orphaned "Octave"
-     alone on a row at several widths (4+4+4+1 was the common one). Thirteen is
-     prime, so no column count divides it and no flex trick can help. The fix is
-     musical rather than arithmetic: UNISON IS NOT A DISTANCE, it is the reference
-     the distances are measured from. Lift it onto its own centred row and exactly
-     twelve remain, and twelve divides evenly by 6, 4 and 3, so the grid below can
-     step down through every screen size without ever stranding a chip. Twelve is
-     also the number of semitones in the octave shown on the keyboard beneath it.
-     Scoped to #iv-list so the Chord Quality lesson's four chips stay untouched. */
+  /* The thirteen interval chips (Unison through Octave) used to wrap freely,
+     which orphaned a single chip alone on a row at several widths (13 is
+     prime, so no column count divides it evenly). The fix: Unison isn’t
+     rendered as a chip at all (see buildIntervals) since it’s the reference
+     point the other intervals are measured from, not a distance alongside
+     them. That leaves exactly twelve, which divides evenly by 6, 4 and 3, so
+     the grid below steps down through every screen size without ever
+     stranding a chip. Twelve is also the number of semitones in the octave
+     shown on the keyboard beneath it.
+     Scoped to #iv-list so the Chord Quality lesson’s four chips stay untouched. */
   #iv-list { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
   #iv-list .iv-chip { text-align: center; }
-  #iv-list .iv-chip[data-semi="0"] { grid-column: 1 / -1; justify-self: center; min-width: 140px; }
   @media (max-width: 1000px) { #iv-list { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 620px)  { #iv-list { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 430px)  {
@@ -1119,7 +1119,7 @@
     <p class="front-door-body">An interactive music-theory environment.<br>See it. Hear it. Understand it.</p>
     <p class="front-door-body">Every screen here makes sound.<br>Tap something, and listen.</p>
     <button type="button" class="front-door-cta" onclick="dismissFrontDoor()">Begin</button>
-    <p class="front-door-note">(On iPhone, flip the silent switch off first.)</p>
+    <p class="front-door-note">(On iPhone, flip the silent switch off first.)<br>(Add it to your home screen — always one tap away, no browser bar.)</p>
   </div>
 </div>
 <script>
@@ -1592,7 +1592,7 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       JAZZ — one tab, seven lessons. A lesson menu (the arc) opens into a
+       JAZZ — one tab, eleven lessons. A lesson menu (the arc) opens into a
        lesson view with prev/next. Each lesson's interactive demo runs on the
        app's shared audio engine and extended keyboard; no duplicated engines.
        ═══════════════════════════════════════════════════════════════════ -->
@@ -1601,7 +1601,7 @@
 
     <!-- LESSON MENU (landing) -->
     <div id="jazz-menu">
-      <p class="jazz-menu-intro">Seven short lessons, built in order — each one rests on the one before it. Start at the top.</p>
+      <p class="jazz-menu-intro">Eleven short lessons, built in order — each one rests on the one before it. Start at the top.</p>
       <ol id="jazz-lesson-list"></ol>
     </div>
 
@@ -1832,6 +1832,104 @@
         </div>
       </div>
 
+      <!-- Lesson 8 · Altered Dominants -->
+      <div class="jazz-lesson-content" id="jazz-m8" style="display:none;">
+        <h2 class="jazz-lesson-title">Altered Dominants</h2>
+        <div class="jazz-lesson-sub">Color the V chord — and meet its secret twin</div>
+        <p class="jazz-lede">
+          You already know G7's guide tones: <b>B</b> and <b>F</b>. Everything below is built on top of those two notes —
+          the alterations dress them up, and the chord that can secretly replace this one shares them outright.
+        </p>
+        <div class="jz-controls" id="m8-controls">
+          <div class="jz-group">
+            <span class="jz-label">Tension</span>
+            <button class="jz-sel" id="m8-b9-btn" data-tension="b9" onclick="NS.m8.pickTension('b9')">♭9</button>
+            <button class="jz-sel" id="m8-s9-btn" data-tension="s9" onclick="NS.m8.pickTension('s9')">♯9</button>
+            <button class="jz-sel" id="m8-s11-btn" data-tension="s11" onclick="NS.m8.pickTension('s11')">♯11</button>
+            <button class="jz-sel" id="m8-b13-btn" data-tension="b13" onclick="NS.m8.pickTension('b13')">♭13</button>
+          </div>
+        </div>
+        <div class="kb-wrap"><div id="jazz-m8-keyboard" class="keyboard"></div></div>
+        <div class="kb-legend">
+          <span><i class="lg-home"></i> root</span>
+          <span><i class="lg-tone"></i> guide tones (3rd &amp; 7th)</span>
+          <span><i class="lg-frame"></i> 5th</span>
+          <span><i class="lg-approach"></i> the alteration</span>
+        </div>
+        <div id="m8-readout" class="jz-readout"></div>
+        <div class="jz-btnrow" style="margin-top:16px;">
+          <button class="jz-btn primary" id="m8-sub-btn" onclick="NS.m8.toggleSub()">Flip to the tritone sub (D♭7) ›</button>
+        </div>
+      </div>
+
+      <!-- Lesson 9 · Modal Interchange -->
+      <div class="jazz-lesson-content" id="jazz-m9" style="display:none;">
+        <h2 class="jazz-lesson-title">Modal Interchange</h2>
+        <div class="jazz-lesson-sub">Borrowing color from the parallel minor</div>
+        <p class="jazz-lede">
+          Every major key has a shadow: its parallel minor, same home note, different set of chords. Borrow one of its
+          chords into a major progression and it darkens the color without breaking the key. Start with the note you
+          already know how to hear moving.
+        </p>
+        <div class="jz-controls" id="m9-controls">
+          <div class="jz-group">
+            <span class="jz-label">Borrow the 4th</span>
+            <button class="jz-sel" id="m9-IV-btn" onclick="NS.m9.pick('IV')">IV</button>
+            <button class="jz-sel" id="m9-iv-btn" onclick="NS.m9.pick('iv')">iv</button>
+          </div>
+          <div class="jz-group">
+            <span class="jz-label">More from the shadow</span>
+            <button class="jz-sel" id="m9-bVI-btn" onclick="NS.m9.pick('bVI')">♭VI</button>
+            <button class="jz-sel" id="m9-bVII-btn" onclick="NS.m9.pick('bVII')">♭VII</button>
+          </div>
+        </div>
+        <div class="kb-wrap"><div id="jazz-m9-keyboard" class="keyboard"></div></div>
+        <div class="kb-legend">
+          <span><i class="lg-frame"></i> shared with C major</span>
+          <span><i class="lg-approach"></i> borrowed from C minor</span>
+        </div>
+        <div id="m9-readout" class="jz-readout"></div>
+        <div class="jz-btnrow" style="margin-top:16px;">
+          <button class="jz-btn primary" id="m9-resolve-btn" onclick="NS.m9.resolve()">▶ Hear it resolve to I</button>
+        </div>
+      </div>
+
+      <!-- Lesson 10 · Rhythm Changes -->
+      <div class="jazz-lesson-content" id="jazz-m10" style="display:none;">
+        <h2 class="jazz-lesson-title">Rhythm Changes</h2>
+        <div class="jazz-lesson-sub">The other form every improviser knows</div>
+        <p class="jazz-lede">
+          The blues is one 12-bar form. This is the other big one: thirty-two bars, A-A-B-A, built from "I Got Rhythm."
+          Together, these two forms carry most of the standard repertoire.
+        </p>
+        <div class="jz-btnrow">
+          <button class="jz-btn primary" id="m10-a-btn" onclick="NS.m10.playA()">▶ Play the A section</button>
+          <button class="jz-btn" id="m10-b-btn" onclick="NS.m10.playB()">▶ Play the bridge</button>
+          <button class="jz-btn" id="m10-full-btn" onclick="NS.m10.playChorus()">▶ Play the whole chorus</button>
+        </div>
+        <div id="m10-viewport"></div>
+        <div id="m10-readout" class="jz-readout"></div>
+      </div>
+
+      <!-- Lesson 11 · Reharmonization -->
+      <div class="jazz-lesson-content" id="jazz-m11" style="display:none;">
+        <h2 class="jazz-lesson-title">Reharmonization</h2>
+        <div class="jazz-lesson-sub">Same tune, different floor underneath it</div>
+        <p class="jazz-lede">
+          The melody never changes. What you put under it does. This is the arranger's toolkit: the same four notes,
+          three different sets of chords, three different feelings.
+        </p>
+        <div class="jz-controls" id="m11-controls">
+          <div class="jz-group">
+            <span class="jz-label">Harmony</span>
+            <button class="jz-sel" id="m11-plain-btn" onclick="NS.m11.play('plain')">Plain</button>
+            <button class="jz-sel" id="m11-sub-btn" onclick="NS.m11.play('sub')">Tritone sub</button>
+            <button class="jz-sel" id="m11-iiv-btn" onclick="NS.m11.play('iiv')">Add a ii–V</button>
+          </div>
+        </div>
+        <div id="m11-readout" class="jz-readout"></div>
+      </div>
+
       <div id="jazz-lesson-nav">
         <button id="jazz-prev" class="jazz-nav-btn" onclick="NS.jazz.prev()">‹ Previous</button>
         <button id="jazz-next" class="jazz-nav-btn" onclick="NS.jazz.next()">Next ›</button>
@@ -1864,7 +1962,7 @@
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Keys &amp; Chords</strong> — set a tonic, watch the seven diatonic chords build, hear each one on the keyboard.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>The Modes</strong> — the same seven notes, seen from a moving home.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Ear Training</strong> — explore intervals by ear, then test yourself against them.</div>
-      <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Jazz</strong> — seven built lessons in order: guide tones, the ii&ndash;V&ndash;I, chord-scales, approach notes, the blues, call and response, time and feel.</div>
+      <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Jazz</strong> — eleven built lessons in order: guide tones, the ii&ndash;V&ndash;I, chord-scales, approach notes, the blues, call and response, time and feel, altered dominants, modal interchange, rhythm changes, reharmonization.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Mathematics</strong> — the acoustics underneath the theory, with every ratio played in pure just intonation so you can hear why equal temperament is a compromise.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>History</strong> — how the system got built, and by whom.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Quiz</strong> — ninety-six questions, filterable by topic, every answer explaining the why rather than marking it right.</div>
@@ -2623,7 +2721,7 @@ const NS_STORE_QUIZ_FREE_COUNT = 'temperament_quiz_free_count';
 const NS_STORE_QUIZ_FREE_RESET = 'temperament_quiz_free_count_reset';
 const NS_QUIZ_FREE_LIMIT = 10;
 const NS_QUIZ_FREE_RESET_EVERY_MS = 30 * 24 * 60 * 60 * 1000; // ~30 days
-const NS_JAZZ_FREE_COUNT = 2; // lessons 1–2 free (index 0,1); 3–7 locked
+const NS_JAZZ_FREE_COUNT = 2; // lessons 1–2 free (index 0,1); 3–11 locked
 
 // Cached, synchronous — every gating check below reads only this, exactly
 // like every other check in this app. It is set true ONLY after a real
@@ -3137,11 +3235,13 @@ function buildCOF() {
     svg.appendChild(minorLabel);
 
     // Key sig label — reverted to the original bare-count display
-    // (e.g. "3♭") for this deploy. The zigzag/staff rendering (drawSigCluster
-    // and the SIG_* tables above) is paused mid-revision per Matthew's
-    // 2026-09-02 direction — left defined-but-unused in this file so the
-    // in-progress work isn't lost, just not wired up to the render. See
-    // KEY-SIGNATURES-HANDOFF.md for where that work stands.
+    // (e.g. "3♭") for this deploy candidate (2026-09-11). The zigzag/staff
+    // rendering (drawSigCluster and the SIG_* tables above) is still paused
+    // mid-revision per Matthew's 2026-09-02 direction — left defined-but-
+    // unused in this file so the in-progress work isn't lost, just not
+    // wired up to the render. See KEY-SIGNATURES-HANDOFF.md for where that
+    // work stands. The vault master keeps the full staff/clef version live;
+    // only this deploy candidate reverts it.
     const [kx, ky] = polarToXY(midA, outerR + 17);
     const sigLabel = document.createElementNS('http://www.w3.org/2000/svg','text');
     sigLabel.setAttribute('x', kx); sigLabel.setAttribute('y', ky+3);
@@ -3828,11 +3928,18 @@ function buildIntervals() {
   var list = document.getElementById('iv-list');
   list.innerHTML = '';
   INTERVALS.forEach(function(iv) {
+    // Unison isn’t given a chip — it’s not a "distance" alongside the other
+    // eleven named intervals, it’s the reference point they’re measured
+    // from. It’s still fully explorable: click the keyboard’s own root C key
+    // below and you hear "same note," which is Unison, demonstrated rather
+    // than labeled. (Also fixes a chip-wrapping bug — see the #iv-list
+    // comment above: 13 chips wrapped unevenly at some widths, 12 don't.)
+    if (iv.semitones === 0) return;
     var chip = document.createElement('button');
     chip.className = 'iv-chip';
     chip.dataset.semi = iv.semitones;
-    // Unison and Octave read plainly — no "P1"/"P8" shorthand to puzzle over.
-    chip.textContent = (iv.semitones === 0 || iv.semitones === 12) ? iv.name : (iv.abbr + ' · ' + iv.name);
+    // Octave reads plainly — no "P8" shorthand to puzzle over.
+    chip.textContent = (iv.semitones === 12) ? iv.name : (iv.abbr + ' · ' + iv.name);
     chip.onclick = function() { ivKeyClick(iv.semitones); };
     list.appendChild(chip);
   });
@@ -4295,6 +4402,34 @@ const QUIZ_BANK = [
   {cat:'History', q:'Early polyphony (organum), layering independent lines, first appeared in which era?', options:['Medieval','Classical','Romantic','Modern'], answer:0, explain:'Medieval organum layered new lines above chant; the Renaissance later perfected polyphony.'},
   {cat:'History', q:'The piano, prized for playing both soft and loud, rose to prominence in which era?', options:['Classical','Medieval','Renaissance','Baroque'], answer:0, explain:'The fortepiano’s dynamic range suited Classical-era expression and supplanted the harpsichord.'},
   {cat:'History', q:'Solfège syllables — do, re, mi… — are a tool for learning which skill?', options:['Sight-singing','Tuning a piano','Building a guitar','Conducting tempo'], answer:0, explain:'Solfège trains the ear and voice to read and sing pitches by their place in the scale.'},
+  // ---- added 2026-09-11: closing real gaps — the cadence family, the scale-degree names, the modes' bright/dark extremes, and the tritone ----
+  {cat:'Modes', q:'Which mode is considered the darkest of the seven diatonic modes, its flat 2nd pulling everything down onto the tonic?', options:['Phrygian','Locrian','Aeolian','Dorian'], answer:0, explain:'Phrygian is the darkest diatonic mode — the half step right above home is the whole story, the sound behind flamenco and metal alike.'},
+  {cat:'Modes', q:'Locrian lowers one degree further than Phrygian does — which one?', options:['The 5th','The 4th','The 6th','The 7th'], answer:0, explain:'Locrian is Phrygian with the 5th also flattened — the last degree to fall, and the reason Locrian’s tonic chord turns diminished.'},
+  {cat:'Chords', q:'Which cadence, IV–I, earned the nickname "the Amen cadence" from centuries of hymn endings?', options:['The plagal cadence','The authentic cadence','The deceptive cadence','The half cadence'], answer:0, explain:'IV–I is the plagal cadence — away from home but in no hurry, the "Amen" that closes a hymn.'},
+  {cat:'Chords', q:'Which cadence surprises the ear by resolving V to vi instead of I?', options:['The deceptive cadence','The authentic cadence','The plagal cadence','The half cadence'], answer:0, explain:'V resolving to vi instead of I is the deceptive cadence — the promise of home, kept in minor.'},
+  {cat:'Keys & Scales', q:'The 2nd degree of the scale — jazz’s "ii" in ii–V–I — is called the…?', options:['Supertonic','Mediant','Submediant','Subdominant'], answer:0, explain:'The supertonic is the 2nd degree, the set-up chord that points at the dominant, which points at home.'},
+  {cat:'Keys & Scales', q:'The 3rd degree of the scale, sharing two notes with the tonic triad, is called the…?', options:['Mediant','Supertonic','Submediant','Dominant'], answer:0, explain:'The mediant sits a third above the tonic and shares two of its three notes — home’s quieter understudy.'},
+  {cat:'Keys & Scales', q:'The 6th degree of the scale, home of the relative minor chord, is called the…?', options:['Submediant','Mediant','Supertonic','Leading tone'], answer:0, explain:'The submediant is the 6th degree, a third below the tonic — its chord, vi, is the relative minor’s home.'},
+  {cat:'Math', q:'Which interval splits the octave exactly in half, tuned on modern instruments to an irrational √2:1?', options:['Tritone','Perfect fifth','Major third','Perfect fourth'], answer:0, explain:'The tritone (a restless 45:32 in just intonation) resists any small ratio — equal temperament instead tunes it to an irrational √2:1, splitting the octave exactly down the middle.'},
+  // ---- added 2026-09-11 (round 2): the ratio table completed, the modal brightness chain closed, seven more keys, and the two untapped eras (Ancient Greece, Early Christian & Byzantine) ----
+  {cat:'Math', q:'Two identical frequencies sounding together — not really an interval, more a zero point everything else is measured from — are described by which ratio?', options:['1:1','2:1','3:2','4:3'], answer:0, explain:'Unison is 1:1 — the same note from two sources, the reference point every other ratio is measured against.'},
+  {cat:'Math', q:'The minor seventh — the note that turns a major triad into a dominant 7th — is which ratio in just intonation?', options:['16:9','5:4','6:5','45:32'], answer:0, explain:'16:9 is the minor seventh — stack it on a major triad and you get the dominant 7th, the chord that pulls hardest toward home.'},
+  {cat:'Math', q:'Which interval did medieval ears treat as a stable consonance in its own right, even though later practice came to hear it as needing resolution?', options:['The perfect fourth','The perfect fifth','The major third','The tritone'], answer:0, explain:'The perfect fourth (4:3) was a primary medieval consonance; later harmonic practice grew more ambivalent about it, treating it as needing resolution in many contexts.'},
+  {cat:'Modes', q:'Built on the 5th degree of the major scale, which mode carries the label "the Dominant Mode"?', options:['Mixolydian','Lydian','Dorian','Aeolian'], answer:0, explain:'Mixolydian starts on the 5th degree — the dominant — and its flat 7th keeps it from ever fully settling.'},
+  {cat:'Modes', q:'Compared with Mixolydian, Dorian lowers one additional degree — which one?', options:['The 3rd','The 2nd','The 6th','The 7th'], answer:0, explain:'Dorian is Mixolydian with the 3rd also flattened — the one note that turns a major-feeling mode minor.'},
+  {cat:'Modes', q:'Compared with Aeolian (natural minor), Phrygian lowers one additional degree — which one?', options:['The 2nd','The 3rd','The 6th','The 7th'], answer:0, explain:'Phrygian is natural minor with the 2nd also flattened — that half step right above the tonic is its whole dark character.'},
+  {cat:'Keys & Scales', q:'How many sharps are in the key of E major?', options:['Four','Three','Five','Two'], answer:0, explain:'E major has F♯, C♯, G♯, and D♯ — four sharps.'},
+  {cat:'Keys & Scales', q:'How many sharps are in the key of B major?', options:['Five','Four','Six','Three'], answer:0, explain:'B major has F♯, C♯, G♯, D♯, and A♯ — five sharps.'},
+  {cat:'Keys & Scales', q:'How many flats are in the key of E♭ major?', options:['Three','Two','Four','One'], answer:0, explain:'E♭ major has B♭, E♭, and A♭ — three flats.'},
+  {cat:'Keys & Scales', q:'How many flats are in the key of B♭ major?', options:['Two','One','Three','None'], answer:0, explain:'B♭ major has B♭ and E♭ — two flats.'},
+  {cat:'Keys & Scales', q:'Which key sits at the circle of fifths’ far point, written with 6 sharps as F♯ major or 6 flats as G♭ major — the same key signature either way?', options:['F♯/G♭ major','C♯/D♭ major','B/C♭ major','E/F♭ major'], answer:0, explain:'F♯ and G♭ major are enharmonic twins, both carrying six accidentals — the one point on the wheel where the sharp side and flat side meet.'},
+  {cat:'Keys & Scales', q:'What is the relative minor of E major?', options:['C♯ minor','A minor','D minor','F♯ minor'], answer:0, explain:'C♯ minor shares E major’s four sharps — same seven notes, a different home.'},
+  {cat:'History', q:'Pythagoras believed the ratios governing musical intervals also governed the motion of the planets. What did he call this idea?', options:['Musica universalis','The Pythagorean comma','The harmonic series','Just intonation'], answer:0, explain:'Musica universalis, "the music of the spheres" — Pythagoras believed the same ratios that build a fifth or an octave also governed the cosmos.'},
+  {cat:'History', q:'Plato believed exposure to which mode made men courageous and disciplined, while the Lydian mode, by contrast, made them soft and indolent?', options:['Dorian','Phrygian','Ionian','Mixolydian'], answer:0, explain:'Plato praised the Dorian mode for building courage and discipline, and distrusted Lydian for making men soft — he thought the state should regulate which modes its citizens could hear.'},
+  {cat:'History', q:'Byzantine chant’s eight-mode system, the Octoechos, is attributed to which saint?', options:['Saint John of Damascus','Saint Ambrose of Milan','Pope Gregory I','Saint Augustine'], answer:0, explain:'Saint John of Damascus (c. 675–749 AD) is credited with the Octoechos — eight modes, four authentic and four plagal, that organized all Byzantine liturgical melody.'},
+  {cat:'History', q:'Before staff notation existed, singers followed curved marks over the text showing melodic direction but not exact pitch. What were these marks called?', options:['Neumes','Solfège','Figured bass','Ligatures'], answer:0, explain:'Neumes told singers to go up or down, but not by how much — Guido of Arezzo’s staff was the missing piece that finally made notation exact.'},
+  {cat:'History', q:'Pythagorean tuning builds every pitch by stacking perfect fifths (3:2). Which small prime number did Renaissance theorists have to accept into the math to finally unlock the pure major third (5:4)?', options:['5','7','11','13'], answer:0, explain:'Pythagoras couldn’t build the major third from pure fifths alone — it took Renaissance theorists letting the number 5 into the math to unlock richer harmony.'},
+  {cat:'History', q:'Antiphonal psalmody — alternating choirs singing back and forth — was standard practice in Christian worship by which era?', options:['Early Christian','Medieval','Renaissance','Baroque'], answer:0, explain:'By the 4th century, antiphonal psalmody was standard across the Mediterranean world — a practice that carried straight into the Medieval chant tradition that followed.'},
 ];
 const QUIZ_CATS = ['All','Modes','Chords','Keys & Scales','Math','History'];
 let quizCat = 'All', quizPool = [], quizIdx = 0, quizScore = 0, quizTotal = 0, quizLocked = false;
@@ -4305,6 +4440,37 @@ let quizSeen = new Set(), quizJustWrapped = false;
 let quizRestored = false;
 
 function quizShuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+// Interleaves the pool so consecutive questions rarely share a category —
+// a plain shuffle can otherwise run several same-subject questions in a row
+// (measured: with this bank's category sizes, about half of naive shuffles
+// produced a run of 4+ same-category questions somewhere in "All" mode,
+// worst case 8 in a row). Weighted round-robin ("surplus round robin"):
+// each category accrues credit every round proportional to its own
+// remaining size, whichever category is most overdue goes next, and ties
+// are broken randomly so the order still feels shuffled, not mechanical.
+// A single-category pool (one subject chosen) degenerates safely to a
+// plain per-category shuffle, since there is nothing else to interleave.
+function quizInterleavedShuffle(ids){
+  const byCat = {};
+  ids.forEach(i => { const c = QUIZ_BANK[i].cat; (byCat[c] = byCat[c] || []).push(i); });
+  const cats = Object.keys(byCat);
+  cats.forEach(c => { byCat[c] = quizShuffle(byCat[c]); });
+  const sizes = {}; cats.forEach(c => sizes[c] = byCat[c].length);
+  const idx = {}; cats.forEach(c => idx[c] = 0);
+  const credit = {}; cats.forEach(c => credit[c] = 0);
+  const result = [];
+  for (let n = 0; n < ids.length; n++){
+    const avail = cats.filter(c => idx[c] < sizes[c]);
+    avail.forEach(c => { credit[c] += sizes[c]; });
+    const maxCredit = Math.max(...avail.map(c => credit[c]));
+    const tied = avail.filter(c => credit[c] === maxCredit);
+    const pick = tied[Math.floor(Math.random() * tied.length)];
+    result.push(byCat[pick][idx[pick]++]);
+    credit[pick] -= ids.length;
+  }
+  return result;
+}
 
 function quizScopeIds(c){
   const ids = [];
@@ -4320,7 +4486,7 @@ function quizBuildPool(){
     quizJustWrapped = true;
     nsTrack('quiz_round_done', { category: String(quizCat), questions: String(ids.length) });
   }
-  quizPool = quizShuffle(unseen);
+  quizPool = quizInterleavedShuffle(unseen);
   quizIdx = 0;
 }
 function buildQuiz(){
@@ -4420,7 +4586,7 @@ window.NS = window.NS || {};
 //    Does NOT use showPanel's global event.target pattern — these are its own
 //    handlers wired to NS.jazz directly.
 NS.jazz = (function(){
-  // Lessons are registered in dependency order. Modules 2–7 get added to this
+  // Lessons are registered in dependency order. Modules 2–8 get added to this
   // list as each is integrated; the menu and prev/next read straight from it.
   var LESSONS = [
     { id:'m1', n:'Guide Tones',  blurb:'The two notes that name a chord', init:function(){ NS.m1.init(); } }
@@ -4972,6 +5138,293 @@ NS.m7 = (function(){
   return { init:init, play:play };
 })();
 NS.jazz.register({ id:'m7', n:'Time and Feel', blurb:'Straight vs swing — where the off-beat sits', init:function(){ NS.m7.init(); } });
+
+// ── Lesson 8 · Altered Dominants (color tones on V7, then its tritone twin) ─
+//    Reuses Lesson 2's G7 so the guide-tone thread (B/F) carries forward.
+//    Tensions light as 'approach' (copper). The tritone-sub toggle proves the
+//    guide tones never move by never touching those two keys when it fires.
+NS.m8 = (function(){
+  var ROOT = ROOT_MIDI;
+  function playChordSemis(semis){
+    var ctx=getAudioCtx(); if(ctx.state==='suspended')ctx.resume();
+    var now=ctx.currentTime+0.04;
+    semis.slice().sort(function(a,b){return a-b;}).forEach(function(s,i){ playNote(ROOT+s, now+i*0.035, 1.3, 0.5); });
+  }
+
+  var GUIDE = [5, 11]; // F and B — the guide tones of both G7 (3rd,7th) and D♭7 (7th,3rd), roles swapped
+  var G7  = { root:7, frame:2 };
+  var DB7 = { root:1, frame:8 };
+  var TENSIONS = {
+    b9:  { semi:8,  id:'<b>♭9 (A♭).</b> The darkest option — the sound of a minor-key ii–V–I, even resolving to a major tonic.' },
+    s9:  { semi:10, id:'<b>♯9 (A♯ — the "Hendrix chord" tension).</b> A blues note colliding with the major 3rd on purpose.' },
+    s11: { semi:1,  id:'<b>♯11 (C♯).</b> The brightest option, from the whole-tone world — common on a dominant chord in no hurry to resolve.' },
+    b13: { semi:3,  id:'<b>♭13 (E♭).</b> The same pitch as a ♯5, named differently depending on what sits above it. Dark, and pulling hard toward home.' }
+  };
+  var ORDER = ['b9','s9','s11','b13'];
+
+  var kb=null, curTension=null, subOn=false, curMap={};
+
+  function base(){ return subOn ? DB7 : G7; }
+  function desiredMap(){
+    var b=base(), map={};
+    map[b.root]='home'; map[b.frame]='frame';
+    GUIDE.forEach(function(s){ map[s]='guide'; });
+    if(!subOn && curTension) map[TENSIONS[curTension].semi]='approach';
+    return map;
+  }
+  function applyMap(){
+    var newMap=desiredMap();
+    Object.keys(curMap).forEach(function(sStr){ var s=parseInt(sStr); if(!(s in newMap)) kb.unlightExact(s); });
+    Object.keys(newMap).forEach(function(sStr){
+      var s=parseInt(sStr), role=newMap[s];
+      if(!(s in curMap)) kb.lightExact(s, role, true);
+      else if(curMap[s]!==role){ kb.unlightExact(s); kb.lightExact(s, role, true); }
+    });
+    curMap=newMap;
+  }
+  function chordSemis(){
+    var b=base(), semis=[b.root,b.frame].concat(GUIDE);
+    if(!subOn && curTension) semis.push(TENSIONS[curTension].semi);
+    return semis;
+  }
+  function setReadout(){
+    var html;
+    if(subOn){
+      html='<b>D♭7.</b> Play the same two keys that have been lit the whole lesson — they never moved. On G7 they were the 3rd (B) and 7th (F); '
+         +'on D♭7 they\'re the 7th (C♭, the same key as B) and 3rd (F), roles swapped. Root and 5th are the only things that traveled, each a tritone '
+         +'from where they started. That shared tritone is the whole mechanism: <b>any dominant 7th can borrow its ♭II7 twin</b>, and a listener\'s ear '
+         +'barely notices which one you meant.';
+    } else if(curTension){
+      html=TENSIONS[curTension].id+' Guide tones B and F haven\'t moved — the alteration is a costume, not a new identity.';
+    } else {
+      html='<b>G7, plain.</b> Root, guide tones, and the 5th. Pick a tension above to hear it colored, or flip below to meet its tritone twin.';
+    }
+    document.getElementById('m8-readout').innerHTML='<div class="ro-id">'+html+'</div>';
+  }
+  function updateButtons(){
+    ORDER.forEach(function(k){ var b=document.getElementById('m8-'+k+'-btn'); b.classList.toggle('active', curTension===k); b.disabled=subOn; });
+    var sb=document.getElementById('m8-sub-btn');
+    sb.classList.toggle('active', subOn);
+    sb.textContent = subOn ? '‹ Back to G7' : 'Flip to the tritone sub (D♭7) ›';
+  }
+  function refresh(){ applyMap(); setReadout(); updateButtons(); playChordSemis(chordSemis()); }
+  function pickTension(t){ if(subOn) return; curTension=(curTension===t)?null:t; refresh(); }
+  function toggleSub(){ subOn=!subOn; refresh(); }
+  function init(){ kb=buildKeyboard(document.getElementById('jazz-m8-keyboard'), function(){}); curTension=null; subOn=false; curMap={}; applyMap(); setReadout(); updateButtons(); }
+  return { init:init, pickTension:pickTension, toggleSub:toggleSub };
+})();
+NS.jazz.register({ id:'m8', n:'Altered Dominants', blurb:'Color the V chord, then meet its secret twin', init:function(){ NS.m8.init(); } });
+
+// ── Lesson 9 · Modal Interchange (borrowing from the parallel minor) ──────
+NS.m9 = (function(){
+  var ROOT = ROOT_MIDI;
+  function playChordSemis(semis){
+    var ctx=getAudioCtx(); if(ctx.state==='suspended')ctx.resume();
+    var now=ctx.currentTime+0.04;
+    semis.slice().sort(function(a,b){return a-b;}).forEach(function(s,i){ playNote(ROOT+s, now+i*0.035, 1.3, 0.5); });
+  }
+  var CHORDS = {
+    IV:   { name:'F major', tones:[{s:5,r:'frame'},{s:9,r:'frame'},{s:0,r:'frame'}],
+            id:'<b>F major, the plain IV.</b> Straight from C major’s own diatonic set. Nothing borrowed yet.' },
+    iv:   { name:'F minor', tones:[{s:5,r:'frame'},{s:8,r:'approach'},{s:0,r:'frame'}],
+            id:'<b>F minor, borrowed from C minor.</b> One note changed — A dropped to A♭ — and the whole chord goes from bright to bittersweet. That’s the entire borrowing move, in miniature.' },
+    bVI:  { name:'A♭ major', tones:[{s:8,r:'approach'},{s:0,r:'frame'},{s:3,r:'approach'}],
+            id:'<b>A♭ major, borrowed from C minor.</b> Two of its three notes live outside C major. This is the chord under the big cinematic swell — the color of a key change that hasn’t happened yet.' },
+    bVII: { name:'B♭ major', tones:[{s:10,r:'approach'},{s:2,r:'frame'},{s:5,r:'frame'}],
+            id:'<b>B♭ major, borrowed from C minor.</b> The “rock cadence” chord — ♭VII→I is plagal-flavored and everywhere, from gospel to pop to jazz ballads.' }
+  };
+  var ORDER=['IV','iv','bVI','bVII'];
+  var kb=null, cur='IV', curMap={}, timers=[], busy=false;
+
+  function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+  function desiredMap(key){ var map={}; CHORDS[key].tones.forEach(function(t){ map[t.s]=t.r; }); return map; }
+  function applyMap(newMap){
+    Object.keys(curMap).forEach(function(sStr){ var s=parseInt(sStr); if(!(s in newMap)) kb.unlightExact(s); });
+    Object.keys(newMap).forEach(function(sStr){
+      var s=parseInt(sStr), role=newMap[s];
+      if(!(s in curMap)) kb.lightExact(s, role, role==='approach');
+      else if(curMap[s]!==role){ kb.unlightExact(s); kb.lightExact(s, role, role==='approach'); }
+    });
+    curMap=newMap;
+  }
+  function chordSemis(key){ return CHORDS[key].tones.map(function(t){ return t.s; }); }
+  function setReadout(html){ document.getElementById('m9-readout').innerHTML='<div class="ro-id">'+html+'</div>'; }
+  function setButtonsEnabled(on){ ORDER.forEach(function(k){ document.getElementById('m9-'+k+'-btn').disabled=!on; }); document.getElementById('m9-resolve-btn').disabled=!on; }
+  function updateButtons(){ ORDER.forEach(function(k){ document.getElementById('m9-'+k+'-btn').classList.toggle('active', cur===k); }); }
+
+  function pick(key){
+    if(busy) return;
+    cur=key; applyMap(desiredMap(key)); setReadout(CHORDS[key].id); updateButtons();
+    playChordSemis(chordSemis(key));
+  }
+  function resolve(){
+    if(busy) return; busy=true; clearTimers(); setButtonsEnabled(false);
+    var name=CHORDS[cur].name;
+    playChordSemis(chordSemis(cur));
+    timers.push(setTimeout(function(){
+      applyMap({0:'root',4:'guide',7:'frame'});
+      setReadout('<b>Home.</b> '+name+' resolves to C major (I). The color was a detour, not a new key.');
+      playChordSemis([0,4,7]);
+    }, 950));
+    timers.push(setTimeout(function(){
+      applyMap(desiredMap(cur)); setReadout(CHORDS[cur].id); setButtonsEnabled(true); busy=false;
+    }, 2500));
+  }
+  function init(){
+    kb=buildKeyboard(document.getElementById('jazz-m9-keyboard'), function(){});
+    cur='IV'; curMap={}; busy=false; clearTimers();
+    applyMap(desiredMap('IV')); setReadout(CHORDS['IV'].id); updateButtons();
+  }
+  return { init:init, pick:pick, resolve:resolve };
+})();
+NS.jazz.register({ id:'m9', n:'Modal Interchange', blurb:'Borrow a chord from the parallel minor', init:function(){ NS.m9.init(); } });
+
+// ── Lesson 10 · Rhythm Changes (the other 32-bar form, A-A-B-A) ───────────
+NS.m10 = (function(){
+  function playChordBed(midis){ var ctx=getAudioCtx(); if(ctx.state==='suspended')ctx.resume(); var now=ctx.currentTime+0.03; midis.slice().sort(function(a,b){return a-b;}).forEach(function(m,i){ playNote(m, now+i*0.03, 1.7, 0.16); }); }
+  var C=[60,64,67], Am=[57,60,64], Dm=[62,65,69], G7=[67,71,74,77];
+  var E7=[64,68,71,74], A7=[57,61,64,67], D7=[62,66,69,72];
+  var A_FORM=[
+    {rom:'I',name:'C',ch:C},{rom:'vi',name:'Am',ch:Am},{rom:'ii',name:'Dm',ch:Dm},{rom:'V',name:'G7',ch:G7},
+    {rom:'I',name:'C',ch:C},{rom:'vi',name:'Am',ch:Am},{rom:'ii',name:'Dm',ch:Dm},{rom:'V',name:'G7',ch:G7}
+  ];
+  var B_FORM=[
+    {rom:'III7',name:'E7',ch:E7},{rom:'III7',name:'E7',ch:E7},
+    {rom:'VI7',name:'A7',ch:A7},{rom:'VI7',name:'A7',ch:A7},
+    {rom:'II7',name:'D7',ch:D7},{rom:'II7',name:'D7',ch:D7},
+    {rom:'V7',name:'G7',ch:G7},{rom:'V7',name:'G7',ch:G7}
+  ];
+  var BAR_S=1.5, BAR_MS=BAR_S*1000;
+  var A_READ='<b>I–vi–ii–V.</b> The turnaround. It resolves and immediately sets up to go again — that’s why it can repeat all day.';
+  var B_READ='<b>The bridge is a staircase.</b> Four dominant chords, each a fifth below the last: E7, A7, D7, G7. That’s four consecutive stops around the Circle of Fifths — the very first tab in this app — walked backward, landing right on the door to home.';
+  var IDLE_READ='Thirty-two bars, A-A-B-A. Play the A section and the bridge on their own, or run the whole chorus straight through.';
+
+  var timers=[], playing=false;
+  function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+  function chordHtml(name){ return name.replace(/(\d+)/, '<sup>$1</sup>'); }
+  function linesOf(form){ var lines=[]; for(var i=0;i<form.length;i+=4) lines.push({bars:[i,i+1,i+2,i+3]}); return lines; }
+
+  function renderSection(mountId, label, form, showMeter, finalBar){
+    if(finalBar===undefined) finalBar=true;
+    var wrap=document.createElement('div'); wrap.className='jz-grid-wrap'; wrap.style.marginBottom='14px';
+    var lbl=document.createElement('div'); lbl.className='grid-label'; lbl.textContent=label;
+    var grid=document.createElement('div'); grid.className='jz-blues-grid'; grid.id=mountId;
+    wrap.appendChild(lbl); wrap.appendChild(grid);
+    var lines=linesOf(form);
+    lines.forEach(function(line, li){
+      var sys=document.createElement('div'); sys.className='ls-system';
+      var head=document.createElement('div'); head.className='ls-col ls-head';
+      head.innerHTML='<div class="ls-chord"></div><div class="ls-bar">'+((li===0&&showMeter)?'<span class="ls-meter"><span>4</span><span>4</span></span>':'')+'</div><div class="ls-rn"></div>';
+      sys.appendChild(head);
+      line.bars.forEach(function(idx, mi){
+        var bar=form[idx]; var isFinal=(finalBar && li===lines.length-1 && mi===line.bars.length-1);
+        var m=document.createElement('div'); m.className='ls-col ls-meas'+(isFinal?' ls-final':''); m.dataset.idx=idx;
+        m.innerHTML='<div class="ls-chord">'+chordHtml(bar.name)+'</div><div class="ls-bar"><span class="ls-staff-slash">/</span><span class="ls-staff-slash">/</span><span class="ls-staff-slash">/</span><span class="ls-staff-slash">/</span></div><div class="ls-rn">'+bar.rom+'</div>';
+        sys.appendChild(m);
+      });
+      grid.appendChild(sys);
+    });
+    return wrap;
+  }
+
+  function setBarActive(mountId, idx){ document.querySelectorAll('#'+mountId+' .ls-meas').forEach(function(m){ m.classList.toggle('playing', parseInt(m.dataset.idx)===idx); }); }
+  function clearBars(mountId){ document.querySelectorAll('#'+mountId+' .ls-meas').forEach(function(m){ m.classList.remove('playing'); }); }
+  function setReadout(html){ document.getElementById('m10-readout').innerHTML='<div class="ro-id">'+html+'</div>'; }
+  function setButtons(on){ ['m10-a-btn','m10-b-btn','m10-full-btn'].forEach(function(id){ document.getElementById(id).disabled=!on; }); }
+
+  function showA(){ var v=document.getElementById('m10-viewport'); v.innerHTML=''; v.appendChild(renderSection('m10-grid-a','The A section (repeats twice)', A_FORM, true, true)); }
+  function showB(){ var v=document.getElementById('m10-viewport'); v.innerHTML=''; v.appendChild(renderSection('m10-grid-b','The bridge', B_FORM, true, true)); }
+  function showFull(){
+    var v=document.getElementById('m10-viewport'); v.innerHTML='';
+    v.appendChild(renderSection('m10-grid-f0','A', A_FORM, true, false));
+    v.appendChild(renderSection('m10-grid-f1','A', A_FORM, false, false));
+    v.appendChild(renderSection('m10-grid-f2','Bridge', B_FORM, false, false));
+    v.appendChild(renderSection('m10-grid-f3','A', A_FORM, false, true));
+  }
+
+  function stopAll(){
+    clearTimers(); playing=false; setButtons(true);
+    ['m10-grid-a','m10-grid-b','m10-grid-f0','m10-grid-f1','m10-grid-f2','m10-grid-f3'].forEach(function(id){ if(document.getElementById(id)) clearBars(id); });
+  }
+
+  function playA(){
+    if(playing) return; clearTimers(); playing=true; setButtons(false);
+    showA(); setReadout(A_READ);
+    A_FORM.forEach(function(bar,i){ timers.push(setTimeout(function(){ setBarActive('m10-grid-a', i); playChordBed(bar.ch); }, i*BAR_MS)); });
+    timers.push(setTimeout(function(){ stopAll(); }, A_FORM.length*BAR_MS+300));
+  }
+  function playB(){
+    if(playing) return; clearTimers(); playing=true; setButtons(false);
+    showB(); setReadout(B_READ);
+    B_FORM.forEach(function(bar,i){ timers.push(setTimeout(function(){ setBarActive('m10-grid-b', i); playChordBed(bar.ch); }, i*BAR_MS)); });
+    timers.push(setTimeout(function(){ stopAll(); }, B_FORM.length*BAR_MS+300));
+  }
+  function playChorus(){
+    if(playing) return; clearTimers(); playing=true; setButtons(false);
+    showFull(); setReadout('The whole chorus: A–A–B–A, thirty-two bars.');
+    var seq=[ {id:'m10-grid-f0',form:A_FORM}, {id:'m10-grid-f1',form:A_FORM}, {id:'m10-grid-f2',form:B_FORM}, {id:'m10-grid-f3',form:A_FORM} ];
+    var offset=0;
+    seq.forEach(function(sec, si){
+      var startMs=offset;
+      sec.form.forEach(function(bar,i){
+        timers.push(setTimeout(function(){
+          setBarActive(sec.id, i); playChordBed(bar.ch);
+          if(i===0) setReadout(si===2 ? B_READ : A_READ);
+        }, startMs+i*BAR_MS));
+      });
+      timers.push(setTimeout(function(){ clearBars(sec.id); }, startMs+sec.form.length*BAR_MS));
+      offset += sec.form.length*BAR_MS;
+    });
+    timers.push(setTimeout(function(){ stopAll(); setReadout(IDLE_READ); }, offset+300));
+  }
+
+  function init(){ playing=false; clearTimers(); showA(); setReadout(IDLE_READ); setButtons(true); }
+  return { init:init, playA:playA, playB:playB, playChorus:playChorus };
+})();
+NS.jazz.register({ id:'m10', n:'Rhythm Changes', blurb:'The other 32-bar form — A-A-B-A', init:function(){ NS.m10.init(); } });
+
+// ── Lesson 11 · Reharmonization (one melody, three chord beds) ────────────
+NS.m11 = (function(){
+  function playBed(midis, t0, dur){ var ctx=getAudioCtx(); if(ctx.state==='suspended')ctx.resume(); midis.slice().sort(function(a,b){return a-b;}).forEach(function(m,i){ playNote(m, t0+i*0.02, dur, 0.14); }); }
+
+  var MELODY=[72,71,69,67]; // C5 B4 A4 G4 — a plain, original four-note descent
+  var NOTE_S=0.62, BAR_S=MELODY.length*NOTE_S;
+  var C_BED=[48,52,55,60], G7_BED=[55,59,62,65], DB7_BED=[49,53,56,59];
+  var AM7_BED=[45,48,52,55], D7_BED=[50,54,57,60];
+
+  var VERSIONS={
+    plain: { beds:[{ch:C_BED,beats:2},{ch:G7_BED,beats:2}],
+             id:'<b>The expected answer.</b> I to V. Nothing wrong with it — this is the floor everything else is measured against.' },
+    sub:   { beds:[{ch:C_BED,beats:2},{ch:DB7_BED,beats:2}],
+             id:'<b>Same melody, the tritone sub from Altered Dominants swapped in underneath.</b> The bass now creeps down by half step instead of leaping by a fourth — darker, more chromatic, same tune on top.' },
+    iiv:   { beds:[{ch:C_BED,beats:1},{ch:AM7_BED,beats:1},{ch:D7_BED,beats:1},{ch:G7_BED,beats:1}],
+             id:'<b>Same melody, a secondary ii–V inserted before the arrival.</b> Nothing about the tune changed — only how much harmonic ground gets covered getting there. This is most of what “reharmonizing a standard” actually means in practice.' }
+  };
+  var ORDER=['plain','sub','iiv'];
+  var IDLE='The melody never changes. What you put under it does. Pick a version to hear the same four notes land three different ways.';
+
+  var timers=[], playing=false, cur=null;
+  function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+  function setReadout(html){ document.getElementById('m11-readout').innerHTML='<div class="ro-id">'+html+'</div>'; }
+  function updateButtons(){ ORDER.forEach(function(k){ var b=document.getElementById('m11-'+k+'-btn'); b.classList.toggle('active', cur===k); b.disabled=playing; }); }
+
+  function play(key){
+    if(playing) return;
+    playing=true; clearTimers(); cur=key; updateButtons();
+    var v=VERSIONS[key]; setReadout(v.id);
+    var ctx=getAudioCtx(); if(ctx.state==='suspended')ctx.resume();
+    var base=ctx.currentTime+0.05, beatOffset=0;
+    v.beds.forEach(function(seg){
+      playBed(seg.ch, base+beatOffset*NOTE_S, seg.beats*NOTE_S+0.3);
+      beatOffset+=seg.beats;
+    });
+    MELODY.forEach(function(m,i){ playNote(m, base+i*NOTE_S, NOTE_S*0.92, 0.5); });
+    timers.push(setTimeout(function(){ playing=false; updateButtons(); }, (BAR_S+0.6)*1000));
+  }
+  function init(){ playing=false; cur=null; clearTimers(); setReadout(IDLE); updateButtons(); }
+  return { init:init, play:play };
+})();
+NS.jazz.register({ id:'m11', n:'Reharmonization', blurb:'One melody, three sets of chords underneath', init:function(){ NS.m11.init(); } });
 </script>
 
 <!-- Umami Cloud — cookieless product analytics (which sections open, where the
