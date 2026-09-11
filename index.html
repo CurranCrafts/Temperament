@@ -2761,6 +2761,15 @@ async function nsVerifyLicenseKey(licenseKey) {
   } catch (e) { return null; }
 }
 
+// A v2+ payload carries `exp` as a Unix timestamp in SECONDS, or null
+// for a lifetime entitlement. A v1 payload ({e,t,d}, no `exp` key at
+// all) reads `payload.exp` as undefined, which this treats the same
+// as null -- so every key issued before this schema existed keeps
+// working exactly as before, with no migration needed.
+function nsLicenseExpired(payload) {
+  return typeof payload.exp === 'number' && payload.exp < Math.floor(Date.now() / 1000);
+}
+
 // Re-derives the cached flag from a real verification of whatever key is
 // stored, and re-renders any locked panel currently on screen if the state
 // just flipped true. Async — the very first paint may briefly show a panel
@@ -2770,7 +2779,7 @@ async function nsRefreshLicenseState() {
   var stored = nsStorageGet(NS_STORE_LICENSE_KEY);
   var payload = stored ? await nsVerifyLicenseKey(stored) : null;
   var wasLicensed = nsLicensedCache;
-  nsLicensedCache = Boolean(payload);
+  nsLicensedCache = Boolean(payload) && !nsLicenseExpired(payload);
   if (nsLicensedCache && !wasLicensed) nsRefreshLockedContent();
   return nsLicensedCache;
 }
@@ -2866,6 +2875,7 @@ async function nsActivateLicenseInner(rawInput) {
 
   const payload = await nsVerifyLicenseKey(key);
   if (!payload) return { ok: false, msg: 'That key didn’t validate.' };
+  if (nsLicenseExpired(payload)) return { ok: false, msg: 'This license has expired.' };
 
   nsStorageSet(NS_STORE_LICENSE_KEY, key);
   nsLicensedCache = true;
