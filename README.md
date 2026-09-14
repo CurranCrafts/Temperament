@@ -1,18 +1,20 @@
 # Temperament
 
-**The Nature of Western Music Theory.** Music theory you can see and hear.
+**The Nature of Music.** Music theory you can see and hear.
 
 A hands-on music-theory companion for serious young musicians, built on a piano
 keyboard, on the phone they already carry. Nine sections: the circle of fifths,
-keys and chords, the modes, ear training, a seven-lesson jazz course, the
+keys and chords, the modes, ear training, an eleven-lesson jazz course, the
 mathematics of the overtone series and temperament, a history of Western music
-theory, a ninety-six question quiz bank, and an about page.
+theory, a 122-question quiz bank, and an about page.
 
-Free to explore in any browser. A one-time $19 individual license unlocks the
-rest of the Jazz sequence, the Chord Quality ear-training lesson, and the full
-Quiz, and turns the app into an installable, offline-capable PWA. Studio,
-Department, and Institution licenses are available for programs and schools;
-see `pricing.html`.
+Free to explore in any browser. A one-time $29 individual license unlocks
+Jazz lessons 3–11, the Chord Quality ear-training lesson, the Interval
+Challenge, and the rest of the Quiz, and turns the app into an installable,
+offline-capable PWA. Studio, Department, and Institution licenses are
+available for programs and schools; see `pricing.html`. A classroom license
+is delivered as a single access link (`#access=CODE`) that activates every
+device it is opened on; the card that handles it lives in `index.html`.
 
 **Live site:** https://temperament.currancrafts.com
 
@@ -21,10 +23,11 @@ see `pricing.html`.
 ## What's in this folder
 
 Ten files, all meant to sit at the root of the `CurranCrafts/Temperament`
-repository, replacing what's there now:
+repository, replacing what's there now (the `.bak` copies beside them are
+local backups and are never published):
 
 - `index.html` — the app itself.
-- `pricing.html` — the four license tiers. Individual ($19) checks out
+- `pricing.html` — the four license tiers. Individual ($29) checks out
   through Lemon Squeezy and is live with real money. Studio, Department,
   and Institution are `mailto:` links until their Lemon Squeezy products
   exist (Paddle is no longer used anywhere in this project).
@@ -32,7 +35,9 @@ repository, replacing what's there now:
   Record.
 - `privacy.html` — Privacy Policy.
 - `refund.html` — Refund Policy.
-- `manifest.webmanifest`, `sw.js` — PWA install + offline support.
+- `manifest.webmanifest`, `sw.js` — PWA install + offline support. The
+  worker is network-first with a cache fallback, so a deploy reaches
+  online users without a cache-version bump.
 - `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` — PWA icons.
 
 ## Publishing an update
