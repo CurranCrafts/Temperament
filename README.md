@@ -9,7 +9,7 @@ mathematics of the overtone series and temperament, a history of Western music
 theory, a 122-question quiz bank, and an about page.
 
 Free to explore in any browser. A one-time $29 individual license unlocks
-Jazz lessons 3–11, the Chord Quality ear-training lesson, the Interval
+Jazz lessons 4–11, the Chord Quality ear-training lesson, the Interval
 Challenge, and the rest of the Quiz, and turns the app into an installable,
 offline-capable PWA. Studio, Department, and Institution licenses are
 available for programs and schools; see `pricing.html`. A classroom license

@@ -2007,7 +2007,7 @@
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Jazz</strong> — eleven built lessons in order: guide tones, the ii&ndash;V&ndash;I, chord-scales, approach notes, the blues, call and response, time and feel, altered dominants, modal interchange, rhythm changes, reharmonization.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Mathematics</strong> — the acoustics underneath the theory, with every ratio played in pure just intonation so you can hear why equal temperament is a compromise.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>History</strong> — how the system got built, and by whom.</div>
-      <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Quiz</strong> — ninety-six questions, filterable by topic, every answer explaining the why rather than marking it right.</div>
+      <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Quiz</strong> — 122 questions, filterable by topic, every answer explaining the why rather than marking it right.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>About</strong> — this page: what the app is, who it's for, and who made it.</div>
       <div style="padding:9px 0"><strong>Install it</strong> — on your phone, add Temperament to your home screen whenever you like, at no cost. It opens full screen, no browser bar, and works with no connection at all. <a href="pricing.html" style="color:var(--copper-text)">See pricing →</a></div>
     </div>
@@ -2746,7 +2746,7 @@ async function nsA2HSInstallClick() {
 }
 
 // ============================================================
-//  LICENSING — gates Jazz lessons 3–7, the Interval Trainer's Challenge
+//  LICENSING — gates Jazz lessons 4–11, the Interval Trainer's Challenge
 //  mode, Ear Training's Chord Quality lesson, and the Quiz past a free
 //  sample. Client-side, no build step, no external file — the same
 //  self-contained-HTML discipline as the rest of this app.
@@ -2776,7 +2776,7 @@ const NS_STORE_QUIZ_FREE_COUNT = 'temperament_quiz_free_count';
 const NS_STORE_QUIZ_FREE_RESET = 'temperament_quiz_free_count_reset';
 const NS_QUIZ_FREE_LIMIT = 10;
 const NS_QUIZ_FREE_RESET_EVERY_MS = 30 * 24 * 60 * 60 * 1000; // ~30 days
-const NS_JAZZ_FREE_COUNT = 2; // lessons 1–2 free (index 0,1); 3–11 locked
+const NS_JAZZ_FREE_COUNT = 3; // lessons 1–3 free (index 0,1,2); 4–11 locked
 const NS_CLASSROOM_TYPES = ['studio', 'department', 'institution'];
 
 // --- Classroom link activation (Phase 2) -------------------------------
