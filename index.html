@@ -521,9 +521,18 @@
   .ns-lock-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
   .ns-lock-input { flex: 1; min-width: 180px; max-width: 260px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 2px; background: var(--surface2); color: var(--ink); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 0.9rem; }
   .ns-lock-msg { font-size: 0.82rem; min-height: 1.2em; margin-bottom: 10px; }
-  .ns-lock-buy { display: inline-block; font-size: 0.86rem; font-weight: 600; color: var(--copper-text); text-decoration: none; border-bottom: 1px solid var(--copper-light); padding-bottom: 1px; }
-  .ns-lock-buy:hover { color: var(--copper-text); }
+  /* Lock card reads top to bottom as one decision: what it is, what it costs, buy it.
+     Key entry is for people who already bought (or have a class code), so it sits
+     behind a quiet disclosure under the buy button instead of competing with it. */
+  .ns-lock-buy { display: block; max-width: 260px; margin: 0 auto; padding: 12px 18px; background: var(--copper-light); border: 1px solid var(--copper-light); border-radius: 2px; color: var(--on-copper); font-size: 1rem; font-weight: 700; text-decoration: none; }
+  .ns-lock-buy:hover { background: var(--copper); border-color: var(--copper); color: var(--on-copper); }
+  .ns-lock-key { margin-top: 18px; }
+  .ns-lock-key > summary { display: inline-block; list-style: none; cursor: pointer; font-size: 0.86rem; color: var(--copper-text); border-bottom: 1px solid var(--border); padding: 6px 0 1px; }
+  .ns-lock-key > summary::-webkit-details-marker { display: none; }
+  .ns-lock-key[open] > summary { color: var(--ink-soft); }
+  .ns-lock-key-hint { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin: 12px 0 10px; }
   .ns-lock-note { font-size: 0.82rem; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+  .ns-lock-progress { color: var(--ink); } /* Ear Training score line: the student's own progress, not a footnote */
 
   /* CLASSROOM ACCESS CARD — shown once, when the app is opened through a
      school's #access= link and no valid entitlement is stored yet. Sits
@@ -1439,12 +1448,12 @@
       <div id="cq-score" style="font-size:0.86rem;color:var(--muted)">Score: 0 / 0</div>
       <div id="cq-streak" style="font-size:0.82rem;color:var(--muted);margin-top:3px"></div>
     </div>
+    <div id="cq-challenge-lock" style="display:none;"></div>
 
     <div class="modes-intro" style="margin-top:14px">
       A <em>triad</em> is three notes stacked in thirds, and its quality — <strong>major, minor, diminished, or augmented</strong> — is set entirely by the size of those two thirds. In <em>Explore</em>, click a quality to see it on the keys and hear it. In <em>Challenge</em>, name the mystery chord by ear.
     </div>
     </div><!-- /ear-mod-chords -->
-    <div class="ear-module" id="ear-mod-chords-lock"></div>
 
     <div class="wonder-quote">
       "To listen intently, to listen consciously, to listen with one's whole intelligence is the least we can do in the furtherance of an art that is one of the glories of mankind."
@@ -2776,6 +2785,16 @@ const NS_STORE_QUIZ_FREE_COUNT = 'temperament_quiz_free_count';
 const NS_STORE_QUIZ_FREE_RESET = 'temperament_quiz_free_count_reset';
 const NS_QUIZ_FREE_LIMIT = 10;
 const NS_QUIZ_FREE_RESET_EVERY_MS = 30 * 24 * 60 * 60 * 1000; // ~30 days
+// Ear Training free meter: one shared allowance of Challenge rounds for BOTH
+// Ear Training Challenges (Intervals + Chord Quality combined). Explore is
+// always free; the meter only counts new Challenge rounds, and refills on the
+// same rolling 30-day window as the Quiz. The combined score is stored so the
+// lock card can cite the student's own progress.
+const NS_STORE_EAR_FREE_COUNT = 'temperament_ear_free_count';
+const NS_STORE_EAR_FREE_RESET = 'temperament_ear_free_count_reset';
+const NS_STORE_EAR_SCORE      = 'temperament_ear_score';
+const NS_EAR_FREE_LIMIT = 10;                              // Challenge rounds, Intervals + Chord Quality combined
+const NS_EAR_FREE_RESET_EVERY_MS = 30 * 24 * 60 * 60 * 1000; // same 30-day window as the Quiz
 const NS_JAZZ_FREE_COUNT = 3; // lessons 1–3 free (index 0,1,2); 4–11 locked
 const NS_CLASSROOM_TYPES = ['studio', 'department', 'institution'];
 
@@ -2945,6 +2964,36 @@ function nsQuizFreeCount() {
 function nsQuizIncrementFreeCount() {
   nsStorageSet(NS_STORE_QUIZ_FREE_COUNT, String(nsQuizFreeCount() + 1));
 }
+// Ear Training meter — mirrors the Quiz meter above. When the 30-day window
+// resets the counter it also clears the stored score, so the lock card never
+// cites a stale number.
+function nsEarFreeCount() {
+  var last = parseInt(nsStorageGet(NS_STORE_EAR_FREE_RESET), 10);
+  if (isNaN(last) || (Date.now() - last) >= NS_EAR_FREE_RESET_EVERY_MS) {
+    nsStorageSet(NS_STORE_EAR_FREE_COUNT, '0');
+    nsStorageSet(NS_STORE_EAR_FREE_RESET, String(Date.now()));
+    nsStorageSet(NS_STORE_EAR_SCORE, JSON.stringify({ score: 0, total: 0 }));
+    return 0;
+  }
+  var n = parseInt(nsStorageGet(NS_STORE_EAR_FREE_COUNT), 10);
+  return isNaN(n) ? 0 : n;
+}
+function nsEarIncrementFreeCount() {
+  nsStorageSet(NS_STORE_EAR_FREE_COUNT, String(nsEarFreeCount() + 1));
+}
+function nsEarChallengeLocked() {
+  return !nsIsLicensed() && nsEarFreeCount() >= NS_EAR_FREE_LIMIT;
+}
+// Combined Ear Training score (both drills) — what the lock card reads.
+function nsEarReadScore() {
+  try { var s = JSON.parse(nsStorageGet(NS_STORE_EAR_SCORE) || ''); if (s && typeof s.total === 'number') return s; } catch (e) {}
+  return { score: 0, total: 0 };
+}
+function nsEarRecordGuess(correct) {
+  var s = nsEarReadScore();
+  s.total += 1; if (correct) s.score += 1;
+  nsStorageSet(NS_STORE_EAR_SCORE, JSON.stringify(s));
+}
 
 // Accepts either the long key or a short XXXX-XXXX-XXXX activation code — a
 // short code costs one network call to resolve to the real key; the key
@@ -2999,20 +3048,33 @@ async function nsActivateLicenseInner(rawInput) {
 }
 
 // Shared markup for every locked-content card. `label` names what's behind it.
-function nsLockCardHTML(label) {
+// Optional `note` renders a progress line between the title and the blurb.
+function nsLockCardHTML(label, note) {
   nsTrack('paywall_shown', { feature: String(label) });
   return '' +
     '<div class="ns-lock-card">' +
       '<div class="ns-lock-title">Unlock ' + label + '</div>' +
-      '<div class="ns-lock-blurb">This is part of the full Temperament — a one-time $29 unlock, yours for good.</div>' +
-      '<div class="ns-lock-row">' +
-        '<input type="text" class="ns-lock-input" id="ns-lock-key-input" placeholder="Paste your key or code" autocomplete="off">' +
-        '<button class="sel-btn" onclick="nsHandleUnlockClick(this)">Unlock</button>' +
-      '</div>' +
-      '<div class="ns-lock-msg" id="ns-lock-msg"></div>' +
-      '<a class="ns-lock-buy" href="pricing.html" data-feature="' + String(label).replace(/"/g, '') + '" onclick="nsTrack(\'buy_link_clicked\', { feature: this.getAttribute(\'data-feature\') })">Get Temperament →</a>' +
+      (note ? '<div class="ns-lock-note ns-lock-progress">' + note + '</div>' : '') +
+      '<div class="ns-lock-blurb">The full Temperament: a one-time $29, yours&nbsp;for&nbsp;good.</div>' +
+      '<a class="ns-lock-buy" href="pricing.html" data-feature="' + String(label).replace(/"/g, '') + '" onclick="nsTrack(\'buy_link_clicked\', { feature: this.getAttribute(\'data-feature\') })">Get Temperament</a>' +
+      '<details class="ns-lock-key" ontoggle="if (this.open) { var i = document.getElementById(\'ns-lock-key-input\'); if (i) i.focus(); }">' +
+        '<summary>Already have a key or code?</summary>' +
+        '<div class="ns-lock-key-hint">Your key and code are in your purchase email.</div>' +
+        '<div class="ns-lock-row">' +
+          '<input type="text" class="ns-lock-input" id="ns-lock-key-input" placeholder="Paste your key or code" autocomplete="off" onkeydown="if (event.key === \'Enter\') { var b = this.parentNode.querySelector(\'button\'); if (b) b.click(); }">' +
+          '<button class="sel-btn" onclick="nsHandleUnlockClick(this)">Unlock</button>' +
+        '</div>' +
+        '<div class="ns-lock-msg" id="ns-lock-msg"></div>' +
+      '</details>' +
       (nsExpiredClassroomCache ? '<div class="ns-lock-note">Your program’s access has ended. Ask your instructor about renewal.</div>' : '') +
     '</div>';
+}
+
+// Ear Training lock-card note: the student's own combined score, if any.
+function nsEarLockNote() {
+  var s = nsEarReadScore();
+  if (!s.total) return '';
+  return 'You’ve named ' + s.score + ' of ' + s.total + ' by ear so far. Keep going.';
 }
 
 // --- Classroom access card (Phase 2) -----------------------------------
@@ -3074,8 +3136,7 @@ async function nsHandleUnlockClick(btn) {
 // validates, so the student lands in the content instead of an empty tab.
 function nsRefreshLockedContent() {
   try {
-    var chordsLock = document.getElementById('ear-mod-chords-lock');
-    if (chordsLock && chordsLock.classList.contains('active')) earShowLesson('chords');
+    if (typeof cqMode !== 'undefined' && cqMode === 'challenge') cqSetMode('challenge');
   } catch (e) {}
   try {
     if (typeof ivMode !== 'undefined' && ivMode === 'challenge') ivSetMode('challenge');
@@ -4051,13 +4112,13 @@ function ivSetMode(mode) {
   earAnswered = false;
   document.getElementById('iv-mode-explore').classList.toggle('active', mode === 'explore');
   document.getElementById('iv-mode-challenge').classList.toggle('active', mode === 'challenge');
-  var challengeLocked = (mode === 'challenge') && !nsIsLicensed();
+  var challengeLocked = (mode === 'challenge') && nsEarChallengeLocked();
   if (mode === 'challenge') nsTrack('lesson_opened', { track: 'ear', lesson: 'interval_challenge', locked: challengeLocked ? 'yes' : 'no' });
   document.getElementById('iv-challenge-controls').style.display = (mode === 'challenge' && !challengeLocked) ? 'block' : 'none';
   var challengeLock = document.getElementById('iv-challenge-lock');
   if (challengeLock) {
     challengeLock.style.display = challengeLocked ? 'block' : 'none';
-    if (challengeLocked) challengeLock.innerHTML = nsLockCardHTML('the Interval Challenge');
+    if (challengeLocked) challengeLock.innerHTML = nsLockCardHTML('the Interval Challenge', nsEarLockNote());
   }
   ivClearChips();
   if (ivKB) { ivKB.reset(); ivKB.mark(0, true); }   // rest as a keyboard, root anchored
@@ -4101,8 +4162,13 @@ function ivShow(semi) {
 
 // ---- challenge ----
 function earPlay() {
-  if (!earCurrentInterval || earAnswered) earNewRound();   // start a fresh round
-  else earPlayCurrent();                                   // or replay the pending one
+  if (!earCurrentInterval || earAnswered) {
+    if (nsEarChallengeLocked()) { ivSetMode('challenge'); return; }   // meter spent: show the card instead of a round
+    if (!nsIsLicensed()) nsEarIncrementFreeCount();
+    earNewRound();                                          // start a fresh round
+  } else {
+    earPlayCurrent();                                       // or replay the pending one (never counts)
+  }
 }
 function earPlayAgain() {
   if (earCurrentInterval) earPlayCurrent();
@@ -4126,6 +4192,7 @@ function earGuess(semi) {
   earAnswered = true;
   earTotal++;
   var answer = earCurrentInterval.semitones;
+  nsEarRecordGuess(semi === answer);
 
   ivKB.reset();
   ivKB.lightExact(0, true);            // reveal: root C — the LOW one only
@@ -4156,19 +4223,13 @@ function earGuess(semi) {
 // ===== EAR-TRAINING LESSON SWITCH — show one module at a time =====
 var EAR_LESSONS = ['intervals', 'chords'];
 function earShowLesson(which){
-  var showLock = (which === 'chords') && !nsIsLicensed();
-  nsTrack('lesson_opened', { track: 'ear', lesson: String(which), locked: showLock ? 'yes' : 'no' });
+  nsTrack('lesson_opened', { track: 'ear', lesson: String(which), locked: 'no' });
   EAR_LESSONS.forEach(function(k){
     var mod = document.getElementById('ear-mod-' + k);
-    if (mod) mod.classList.toggle('active', k === which && !(k === 'chords' && showLock));
+    if (mod) mod.classList.toggle('active', k === which);
     var tab = document.getElementById('earlesson-' + k);
     if (tab) tab.classList.toggle('active', k === which);
   });
-  var lock = document.getElementById('ear-mod-chords-lock');
-  if (lock) {
-    lock.classList.toggle('active', showLock);
-    if (showLock) lock.innerHTML = nsLockCardHTML('Chord Quality');
-  }
 }
 
 // ===== CHORD-QUALITY EAR TRAINING (triads on C) =====
@@ -4204,12 +4265,19 @@ function cqSetMode(mode){
   cqCurrent = null; cqAnswered = false;
   document.getElementById('cq-mode-explore').classList.toggle('active', mode === 'explore');
   document.getElementById('cq-mode-challenge').classList.toggle('active', mode === 'challenge');
-  document.getElementById('cq-challenge-controls').style.display = (mode === 'challenge') ? 'block' : 'none';
+  var challengeLocked = (mode === 'challenge') && nsEarChallengeLocked();
+  if (mode === 'challenge') nsTrack('lesson_opened', { track: 'ear', lesson: 'chord_challenge', locked: challengeLocked ? 'yes' : 'no' });
+  document.getElementById('cq-challenge-controls').style.display = (mode === 'challenge' && !challengeLocked) ? 'block' : 'none';
+  var lock = document.getElementById('cq-challenge-lock');
+  if (lock) {
+    lock.style.display = challengeLocked ? 'block' : 'none';
+    if (challengeLocked) lock.innerHTML = nsLockCardHTML('the Chord Quality Challenge', nsEarLockNote());
+  }
   cqClearChips();
   if (cqKB){ cqKB.reset(); cqKB.mark(0, true); }
   document.getElementById('cq-readout').innerHTML = (mode === 'explore')
     ? '<span style="color:var(--muted);font-style:italic">Click a quality to see it on the keys and hear it.</span>'
-    : '<span style="color:var(--muted);font-style:italic">Press &ldquo;Play mystery chord&rdquo;, then name it.</span>';
+    : (challengeLocked ? '' : '<span style="color:var(--muted);font-style:italic">Press &ldquo;Play mystery chord&rdquo;, then name it.</span>');
 }
 function cqClearChips(){ document.querySelectorAll('#cq-list .iv-chip').forEach(function(c){ c.classList.remove('active','correct','wrong'); }); }
 function cqMarkChip(idx, cls){ var c = document.querySelector('#cq-list .iv-chip[data-idx="' + idx + '"]'); if (c) c.classList.add(cls); }
@@ -4227,7 +4295,15 @@ function cqShow(idx){
     '<div style="font-size:0.92rem;color:var(--ink)">' + q.formula + '</div>' +
     '<div style="font-size:0.85rem;color:var(--muted);font-style:italic;margin-top:4px">' + q.feel + '</div>';
 }
-function cqPlay(){ if (!cqCurrent || cqAnswered) cqNewRound(); else cqPlayChord(cqCurrent); }
+function cqPlay(){
+  if (!cqCurrent || cqAnswered) {
+    if (nsEarChallengeLocked()) { cqSetMode('challenge'); return; }
+    if (!nsIsLicensed()) nsEarIncrementFreeCount();
+    cqNewRound();
+  } else {
+    cqPlayChord(cqCurrent);
+  }
+}
 function cqPlayAgain(){ if (cqCurrent) cqPlayChord(cqCurrent); }
 function cqNewRound(){
   cqAnswered = false;
@@ -4242,6 +4318,7 @@ function cqGuess(idx){
   if (cqAnswered || !cqCurrent) return;
   cqAnswered = true; cqTotal++;
   var ansIdx = TRIAD_QUALITIES.indexOf(cqCurrent);
+  nsEarRecordGuess(idx === ansIdx);
   cqLightChord(cqCurrent);
   cqClearChips();
   cqMarkChip(ansIdx, 'correct');
