@@ -706,6 +706,16 @@
   .quiz-explain { margin-top: 14px; font-size: 0.92rem; color: var(--muted); line-height: 1.6; text-align: center; }
   .quiz-next-wrap { text-align: center; margin-top: 16px; }
   #quiz-score { text-align: center; margin-top: 14px; font-size: 0.88rem; color: var(--muted); }
+  .why-card { background: var(--surface2); border: 1px solid var(--border); border-left: 4px solid var(--copper-light); border-radius: 2px; padding: 15px 16px 14px; margin-top: 13px; box-shadow: 1px 2px 5px rgba(50,25,5,0.12); }
+  .why-card h3 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.2rem; color: var(--copper-text); font-weight: 600; margin-bottom: 8px; }
+  .why-card p { font-size: 0.94rem; line-height: 1.75; color: var(--ink); margin-top: 10px; }
+  #why-gap { width: 100%; height: auto; display: block; margin: 2px 0 4px; }
+  .why-more { background: none; border: none; padding: 10px 0 2px; margin-top: 4px; color: var(--copper-text); font: 600 0.9rem 'Source Sans 3', system-ui, sans-serif; cursor: pointer; letter-spacing: 0.02em; }
+  .why-more[aria-expanded="true"] span { display: inline-block; transform: rotate(180deg); }
+  .why-more-body { border-top: 1px solid var(--border); margin-top: 8px; }
+  .why-play { margin-top: 12px; background: var(--surface); border: 1px solid var(--copper-light); color: var(--copper-text); padding: 9px 14px; border-radius: 2px; font: 600 0.9rem 'Source Sans 3', system-ui, sans-serif; cursor: pointer; }
+  #why-third-say { margin-left: 10px; font-size: 0.88rem; color: var(--ink-soft); font-style: italic; }
+  .comma-link { background: none; border: none; padding: 0; color: var(--copper-text); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
   #ratio-scope { position: sticky; top: 0; z-index: 5; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; padding: 8px 10px 7px; margin-bottom: 12px; box-shadow: 1px 2px 6px rgba(50,25,5,0.14); }
   #ratio-scope canvas { width: 100%; height: 88px; display: block; }
   #ratio-scope-cap { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.35; }
@@ -1259,6 +1269,9 @@
       <div class="insight-box" style="max-width:640px">
         <strong>Why a circle?</strong> Move clockwise by a perfect fifth (7 semitones) and after exactly twelve steps you return to your starting key, having visited all twelve. Adjacent keys share six of their seven notes — which is why one step is a gentle change of scenery and a jump across the circle is not. The outer ring holds the major keys; the inner ring their <em>relative minors</em>: the same seven notes, a different one called home.
       </div>
+      <div class="insight-box" style="max-width:640px">
+        <strong>The Pythagorean Comma.</strong> If you stack twelve pure fifths (3:2 each), you should land exactly seven octaves above your starting note, and the wheel would close. It doesn&rsquo;t. Twelve pure fifths overshoot by about 23.5 cents, roughly a quarter of a semitone. So we use <em>equal temperament</em>, narrowing each fifth by about 2 cents. And at last, the circle closes. <button type="button" class="comma-link" onclick="nsGoWhyTemperament()">Why that bargain is worth making &rarr;</button>
+      </div>
       <div class="wonder-quote">
         "Music is a hidden arithmetic exercise of the soul, which does not know that it is counting."
         <span>— Gottfried Leibniz, letter to Christian Goldbach, 1712</span>
@@ -1386,16 +1399,47 @@
       <div class="page-sub">The numerical architecture of harmony</div>
     </div>
     <div class="section-label hint" style="margin-bottom:10px">Tap a card to hear the ratio and see its waves</div>
+    <div id="ratios-zone">
     <div id="ratio-scope" aria-label="The two sound waves of the chosen interval, overlaid to show how they line up">
       <canvas id="ratio-scope-cv"></canvas>
       <div id="ratio-scope-cap"></div>
     </div>
     <div id="ratios-list"></div>
-    <div class="insight-box">
-      <strong>The Pythagorean Comma</strong> — Tune twelve perfect fifths (3:2 each) and you should land back on your starting note, seven octaves up. You don't — you overshoot by about 23.5 cents, a gap called the Pythagorean comma. Equal temperament, the tuning of the modern piano, solves it by shaving every fifth slightly so the error disappears into all twelve keys at once; only the octave survives pure. It's the trade the 19th century finally accepted: every interval a little wrong, every key equally usable.
+    </div>
+    <div id="why-temperament" class="why-card">
+      <h3>Why Temperament?</h3>
+      <svg id="why-gap" viewBox="0 0 340 150" role="img" aria-label="Seven octaves and twelve pure fifths end almost, but not quite, at the same pitch. Zoomed in, the fifths overshoot by about a quarter of a semitone." xmlns="http://www.w3.org/2000/svg">
+        <g font-family="'Source Sans 3',system-ui,sans-serif" font-size="10.5">
+          <text x="4" y="12" fill="var(--muted)">7 octaves</text>
+          <g id="why-oct"></g>
+          <text x="4" y="46" fill="var(--muted)">12 pure fifths</text>
+          <g id="why-fifths"></g>
+          <path d="M335.5 31 L240 92 M335.5 56 L300 92" stroke="var(--root)" stroke-width="0.8" stroke-dasharray="2.5 2.5" fill="none" opacity="0.7"/>
+          <rect x="30" y="92" width="280" height="44" rx="2" fill="var(--surface2)" stroke="var(--border)"/>
+          <line x1="50" y1="114" x2="290" y2="114" stroke="var(--border)" stroke-width="1.2"/>
+          <line x1="50" y1="106" x2="50" y2="122" stroke="var(--ink)" stroke-width="1.6"/>
+          <line x1="290" y1="106" x2="290" y2="122" stroke="var(--muted)" stroke-width="1"/>
+          <line x1="106.3" y1="104" x2="106.3" y2="124" stroke="var(--root)" stroke-width="1.8"/>
+          <rect x="50" y="110" width="56.3" height="8" fill="var(--root)" opacity="0.28"/>
+          <text x="50" y="102" text-anchor="start" fill="var(--ink)">7 octaves lands here</text>
+          <text x="106.3" y="133" text-anchor="start" fill="var(--root)" font-weight="600">12 fifths land here</text>
+          <text x="290" y="133" text-anchor="end" fill="var(--muted)">+1 semitone</text>
+          <text x="170" y="86" text-anchor="middle" fill="var(--muted)" font-style="italic">zoomed in: the last semitone</text>
+        </g>
+      </svg>
+      <p>Nature hands us pure ratios, and they are lovely: the octave, the fifth, the third. The trouble is that they refuse to agree with one another. Stack twelve pure fifths and you land a little sharp of seven octaves, a gap of about a quarter of a semitone. No amount of care closes it.</p>
+      <p>So musicians struck a bargain. Flatten every fifth a hair, and the gap is shared out among all twelve keys instead of piling up in one. Almost nothing is perfectly pure any more, but nothing is ruined either. You can begin on any note, play in any key, and travel between them without a howl.</p>
+      <p>We do this elsewhere. Without leap days, our calendar would slowly drift out of step with the seasons, so every few years we add one. The sun isn&rsquo;t wrong. Neither is the fifth. Temperament follows the same instinct: nature gives us beautiful relationships that don&rsquo;t always fit neatly into the systems we build, and we make small compromises, not because nature is wrong, but because those compromises make more possible.</p>
+      <button type="button" id="why-more-btn" class="why-more" aria-expanded="false" aria-controls="why-more">Hear what it costs <span aria-hidden="true">&#9662;</span></button>
+      <div id="why-more" class="why-more-body" hidden>
+        <p>Tune a keyboard in pure fifths and eleven of them sound sweet, while the twelfth is left to absorb the whole gap. It sounds so harsh that players called it the wolf.</p>
+        <p>Equal temperament has no wolf, and it has a price: the piano&rsquo;s major third is about 14 cents sharp of the pure 5:4. Hear both, pure first, then the piano&rsquo;s.</p>
+        <button type="button" id="why-third-btn" class="why-play">&#9654; Pure third, then piano&rsquo;s</button>
+        <span id="why-third-say" aria-live="polite"></span>
+      </div>
     </div>
     <div class="insight-box" style="margin-top:14px">
-      <strong>Harmonics & Overtones</strong> — A vibrating string never produces just one frequency. Above the fundamental rings a whole series: double the frequency (the octave), triple (a fifth above that), four times (two octaves), five times (a major third). Take the first six members of the series together and you have a major triad — the chord was sitting inside every single note all along.
+      <strong>Harmonics and Overtones.</strong> A vibrating string never produces just one frequency. Above its main pitch, called the fundamental, it also sounds a series of fainter, higher tones: two times the frequency (an octave higher), three times (an octave and a fifth higher), four times (two octaves), five times (two octaves and a major third), and six times (two octaves and a fifth). So if you play a low C, the first six tones in its series are C, C, G, C, E and G. Those are the notes of a C major chord. The chord was already sounding inside the single note.
     </div>
     <div class="wonder-quote">
       "The heavenly motions are nothing but a continuous song for several voices, perceived not by the ear but by the intellect."
@@ -2052,7 +2096,7 @@
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>The Modes</strong> — the same seven notes, seen from a moving home.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Ear Training</strong> — explore intervals by ear, then test yourself against them.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Jazz</strong> — eleven built lessons in order: guide tones, the ii&ndash;V&ndash;I, chord-scales, approach notes, the blues, call and response, time and feel, altered dominants, modal interchange, rhythm changes, reharmonization.</div>
-      <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Mathematics</strong> — the acoustics underneath the theory, with every ratio played in pure just intonation so you can hear why equal temperament is a compromise.</div>
+      <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Mathematics</strong> — the acoustics underneath the theory, with every ratio played in pure just intonation so you can hear why equal temperament is a compromise, and why the piano is tuned the way it is.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>History</strong> — how the system got built, and by whom.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>Quiz</strong> — 122 questions, filterable by topic, every answer explaining the why rather than marking it right.</div>
       <div style="padding:9px 0;border-bottom:1px solid var(--border-soft)"><strong>About</strong> — this page: what the app is, who it's for, and who made it.</div>
@@ -4607,6 +4651,53 @@ function rvPlay(num, den, color) {
   rvState.raf = requestAnimationFrame(tick);
 }
 window.addEventListener('resize', function() { if (!rvState.raf) rvRender(-1); });
+
+// ---- Why Temperament? card ----
+function nsBuildWhyGap() {
+  var NS = 'http://www.w3.org/2000/svg', x0 = 50 - 46, w = 332 - 4; // bar spans x 4..332
+  function seg(g, count, y, tintA, tintB) {
+    var g2 = document.getElementById(g); if (!g2 || g2.children.length) return;
+    for (var i = 0; i < count; i++) {
+      var r = document.createElementNS(NS, 'rect');
+      r.setAttribute('x', (4 + w * i / count).toFixed(2)); r.setAttribute('y', y);
+      r.setAttribute('width', (w / count - 0.8).toFixed(2)); r.setAttribute('height', 14);
+      r.setAttribute('fill', i % 2 ? tintB : tintA); g2.appendChild(r);
+    }
+  }
+  seg('why-oct', 7, 16, 'var(--copper-light)', 'var(--copper)');
+  seg('why-fifths', 12, 50, '#7a9a86', '#5f8470');
+}
+function nsGoWhyTemperament() {
+  showPanel('ratios');
+  setTimeout(function() {
+    var el = document.getElementById('why-temperament');
+    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 120);
+}
+function nsWhyThird() {
+  var ctx = getAudioCtx(); if (ctx.state === 'suspended') ctx.resume();
+  var now = ctx.currentTime + 0.04, c = 261.63, say = document.getElementById('why-third-say');
+  playFreq(c, now, 1.1, 0.42); playFreq(c * 5 / 4, now, 1.1, 0.42);
+  playFreq(c, now + 1.5, 1.1, 0.42); playFreq(c * Math.pow(2, 4 / 12), now + 1.5, 1.1, 0.42);
+  if (say) {
+    say.textContent = 'pure';
+    setTimeout(function() { say.textContent = 'piano'; }, 1500);
+    setTimeout(function() { say.textContent = ''; }, 2800);
+  }
+}
+(function() {
+  function wire() {
+    var b = document.getElementById('why-more-btn'), body = document.getElementById('why-more'), t = document.getElementById('why-third-btn');
+    if (!b || !body) return;
+    b.addEventListener('click', function() {
+      var open = b.getAttribute('aria-expanded') === 'true';
+      b.setAttribute('aria-expanded', open ? 'false' : 'true'); body.hidden = open;
+    });
+    if (t) t.addEventListener('click', nsWhyThird);
+    nsBuildWhyGap();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+})();
 
 function buildRatios() {
   const list = document.getElementById('ratios-list');
