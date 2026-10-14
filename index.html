@@ -1230,6 +1230,7 @@
   <div id="cof-panel" class="panel active">
     <div id="cof-container">
       <div class="page-head"><div class="page-sub">The map that connects all twelve keys</div></div>
+      <div class="section-label hint" style="margin-bottom:6px">Tap any key to hear its scale</div>
       <div id="cof-wrap">
         <svg id="cof-svg" viewBox="-24 -24 548 548" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
@@ -1268,7 +1269,7 @@
         <div class="page-sub">The chords hidden in every key</div>
       </div>
 
-      <div class="section-label hint">Click a key to set your home note — its seven chords appear above</div>
+      <div class="section-label hint">Tap a key to set home. Its seven chords appear above</div>
 
       <div id="diatonic-grid"></div>
 
@@ -1286,7 +1287,7 @@
         </div>
         <div class="kc-stage-info">
           <div id="chord-result">
-            <div id="chord-name-display" style="color:var(--muted);font-size:1.1rem;font-family:'Source Sans 3',system-ui,sans-serif;font-style:italic">Click a key to choose your home note</div>
+            <div id="chord-name-display" style="color:var(--muted);font-size:1.1rem;font-family:'Source Sans 3',system-ui,sans-serif;font-style:italic">Tap a key to choose your home note</div>
             <div id="chord-notes-display"></div>
             <div id="chord-formula"></div>
             <div style="margin-top:12px">
@@ -1328,7 +1329,7 @@
     <div class="page-head">
       <div class="page-sub">Seven perspectives on one scale</div>
     </div>
-    <div class="section-label hint" style="margin-bottom:10px">Click a mode to light it on the keys and hear it</div>
+    <div class="section-label hint" style="margin-bottom:10px">Tap a mode to light it on the keys and hear it</div>
     <div id="mode-chips"></div>
     <div class="modes-stage">
       <div class="modes-stage-kb">
@@ -1380,6 +1381,7 @@
     <div class="page-head">
       <div class="page-sub">The numerical architecture of harmony</div>
     </div>
+    <div class="section-label hint" style="margin-bottom:10px">Tap a card to hear the ratio</div>
     <div id="ratios-list"></div>
     <div class="insight-box">
       <strong>The Pythagorean Comma</strong> — Tune twelve perfect fifths (3:2 each) and you should land back on your starting note, seven octaves up. You don't — you overshoot by about 23.5 cents, a gap called the Pythagorean comma. Equal temperament, the tuning of the modern piano, solves it by shaving every fifth slightly so the error disappears into all twelve keys at once; only the octave survives pure. It's the trade the 19th century finally accepted: every interval a little wrong, every key equally usable.
@@ -1408,7 +1410,7 @@
 
     <!-- LESSON 1 — INTERVALS -->
     <div class="ear-module active" id="ear-mod-intervals">
-    <div class="section-label hint" style="margin-bottom:10px">Hear the intervals that build all music</div>
+    <div class="section-label hint" style="margin-bottom:10px">Tap an interval, or a key, to hear it up from C</div>
     <!-- Interval list: click to hear (Explore) or to answer (Challenge); also lights up to show what's revealed -->
     <div id="iv-list" class="iv-list"></div>
 
@@ -1418,7 +1420,7 @@
       <span><i class="lg-root"></i>root (C)</span>
       <span><i class="lg-tone"></i>the interval</span>
     </div>
-    <div class="kb-readout" id="iv-readout" style="color:var(--muted);font-style:italic">Click any key or interval to hear it.</div>
+    <div class="kb-readout" id="iv-readout" style="color:var(--muted);font-style:italic"></div>
 
     <!-- Explore / Challenge toggle — sits below the keyboard, compact -->
     <div class="mode-toggle" style="margin:10px 0 0;">
@@ -1437,7 +1439,7 @@
     <div id="iv-challenge-lock" style="display:none;"></div>
 
     <div class="modes-intro" style="margin-top:14px">
-      An <em>interval</em> is the step-wise distance between two pitches. This interval trainer is set to C major. Click a note to see what the relative interval is, or click the interval so that it shows and plays you that interval.
+      An <em>interval</em> is the step-wise distance between two pitches. This interval trainer is set to C major. Tap a note to see what the relative interval is, or tap the interval so that it shows and plays you that interval.
     </div>
 
     <hr class="divider">
@@ -1461,7 +1463,7 @@
       <span><i class="lg-root"></i>root (C)</span>
       <span><i class="lg-tone"></i>chord tone</span>
     </div>
-    <div class="kb-readout" id="cq-readout" style="color:var(--muted);font-style:italic">Click a quality to hear its triad on C.</div>
+    <div class="kb-readout" id="cq-readout" style="color:var(--muted);font-style:italic">Tap a quality to hear its triad on C.</div>
 
     <div class="mode-toggle" style="margin:10px 0 0;">
       <button class="mode-btn active" id="cq-mode-explore" onclick="cqSetMode('explore')">Explore</button>
@@ -1479,7 +1481,7 @@
     <div id="cq-challenge-lock" style="display:none;"></div>
 
     <div class="modes-intro" style="margin-top:14px">
-      A <em>triad</em> is three notes stacked in thirds, and its quality — <strong>major, minor, diminished, or augmented</strong> — is set entirely by the size of those two thirds. In <em>Explore</em>, click a quality to see it on the keys and hear it. In <em>Challenge</em>, name the mystery chord by ear.
+      A <em>triad</em> is three notes stacked in thirds, and its quality — <strong>major, minor, diminished, or augmented</strong> — is set entirely by the size of those two thirds. In <em>Explore</em>, tap a quality to see it on the keys and hear it. In <em>Challenge</em>, name the mystery chord by ear.
     </div>
     </div><!-- /ear-mod-chords -->
 
@@ -4077,7 +4079,7 @@ function kcSetTonic(pc, semiClicked, silent) {
   nameEl.textContent = keyLabel(pc);
   nameEl.style.color = 'var(--copper-light)';
   document.getElementById('chord-notes-display').innerHTML = '';
-  document.getElementById('chord-formula').textContent = 'Click a chord above to hear it, or pick a quality below';
+  document.getElementById('chord-formula').textContent = 'Tap a chord above to hear it, or pick a quality below';
   document.getElementById('chord-replay-btn').style.display = 'none';
 }
 
@@ -4210,8 +4212,8 @@ function ivSetMode(mode) {
   ivClearChips();
   if (ivKB) { ivKB.reset(); ivKB.mark(0, true); }   // rest as a keyboard, root anchored
   document.getElementById('iv-readout').innerHTML = (mode === 'explore')
-    ? '<span style="color:var(--muted);font-style:italic">Click any key or interval to hear it.</span>'
-    : (challengeLocked ? '' : '<span style="color:var(--muted);font-style:italic">Press &ldquo;Play mystery interval&rdquo;, then click your answer — on the keys or in the list.</span>');
+    ? ''
+    : (challengeLocked ? '' : '<span style="color:var(--muted);font-style:italic">Press &ldquo;Play mystery interval&rdquo;, then tap your answer — on the keys or in the list.</span>');
   nsEarShowAllowance();
 }
 
@@ -4270,7 +4272,7 @@ function earNewRound() {
   ivClearChips();
   earCurrentInterval = EAR_POOL[Math.floor(Math.random() * EAR_POOL.length)];
   document.getElementById('iv-readout').innerHTML =
-    '<span style="color:var(--muted);font-style:italic">Heard it? Click the key &mdash; or the interval &mdash; you think it is.</span>';
+    '<span style="color:var(--muted);font-style:italic">Heard it? Tap the key &mdash; or the interval &mdash; you think it is.</span>';
   earPlayCurrent();
 }
 
@@ -4364,7 +4366,7 @@ function cqSetMode(mode){
   cqClearChips();
   if (cqKB){ cqKB.reset(); cqKB.mark(0, true); }
   document.getElementById('cq-readout').innerHTML = (mode === 'explore')
-    ? '<span style="color:var(--muted);font-style:italic">Click a quality to see it on the keys and hear it.</span>'
+    ? '<span style="color:var(--muted);font-style:italic">Tap a quality to see it on the keys and hear it.</span>'
     : (challengeLocked ? '' : '<span style="color:var(--muted);font-style:italic">Press &ldquo;Play mystery chord&rdquo;, then name it.</span>');
   nsEarShowAllowance();
 }
@@ -4400,7 +4402,7 @@ function cqNewRound(){
   cqClearChips();
   cqCurrent = TRIAD_QUALITIES[Math.floor(Math.random() * TRIAD_QUALITIES.length)];
   document.getElementById('cq-readout').innerHTML =
-    '<span style="color:var(--muted);font-style:italic">Heard it? Click the quality you think it is.</span>';
+    '<span style="color:var(--muted);font-style:italic">Heard it? Tap the quality you think it is.</span>';
   cqPlayChord(cqCurrent);
 }
 function cqGuess(idx){
