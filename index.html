@@ -706,6 +706,10 @@
   .quiz-explain { margin-top: 14px; font-size: 0.92rem; color: var(--muted); line-height: 1.6; text-align: center; }
   .quiz-next-wrap { text-align: center; margin-top: 16px; }
   #quiz-score { text-align: center; margin-top: 14px; font-size: 0.88rem; color: var(--muted); }
+  #ratio-scope { position: sticky; top: 0; z-index: 5; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; padding: 8px 10px 7px; margin-bottom: 12px; box-shadow: 1px 2px 6px rgba(50,25,5,0.14); }
+  #ratio-scope canvas { width: 100%; height: 78px; display: block; }
+  #ratio-scope-cap { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.35; }
+  .ratio-card.active { border-color: var(--copper); }
   .ratio-play { font-size: 0.7rem; color: var(--copper-text); font-style: normal; font-weight: 600; letter-spacing: 0.04em; margin-left: 6px; opacity: 0.85; }
   .ratio-card {
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
@@ -1381,7 +1385,11 @@
     <div class="page-head">
       <div class="page-sub">The numerical architecture of harmony</div>
     </div>
-    <div class="section-label hint" style="margin-bottom:10px">Tap a card to hear the ratio</div>
+    <div class="section-label hint" style="margin-bottom:10px">Tap a card to hear the ratio and see its waves</div>
+    <div id="ratio-scope" aria-label="The two sound waves of the chosen interval, and the wave they make together">
+      <canvas id="ratio-scope-cv"></canvas>
+      <div id="ratio-scope-cap"></div>
+    </div>
     <div id="ratios-list"></div>
     <div class="insight-box">
       <strong>The Pythagorean Comma</strong> — Tune twelve perfect fifths (3:2 each) and you should land back on your starting note, seven octaves up. You don't — you overshoot by about 23.5 cents, a gap called the Pythagorean comma. Equal temperament, the tuning of the modern piano, solves it by shaving every fifth slightly so the error disappears into all twelve keys at once; only the octave survives pure. It's the trade the 19th century finally accepted: every interval a little wrong, every key equally usable.
@@ -4536,6 +4544,65 @@ function buildHistory() {
   toggleEra('modern');
 }
 
+// ---- Ratio scope: the two waves of an interval and the wave they make together ----
+var rvState = { num: 3, den: 2, color: '#60c8a0', t0: 0, raf: 0 };
+var RV_BASE = 261.63;
+function rvWindow(den) { return Math.max(3, Math.min(12, den)); }
+function rvRender(elapsed) {   // elapsed = seconds into playback, or -1 for rest
+  var cv = document.getElementById('ratio-scope-cv');
+  if (!cv || !cv.clientWidth) return;
+  var dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  var cs = getComputedStyle(document.documentElement);
+  var cBase = cs.getPropertyValue('--ink-soft').trim() || '#5a4f44';
+  var cSum = cs.getPropertyValue('--copper').trim() || '#a85c32';
+  var cUp = nsInk(rvState.color), cMuted = cs.getPropertyValue('--muted').trim() || '#695f52';
+  var n = rvState.num, d = rvState.den, win = rvWindow(d);
+  var phase = elapsed < 0 ? 3 : (elapsed < 0.9 ? 0 : (elapsed < 1.85 ? 1 : 2));
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var shift = (elapsed < 0 || still) ? 0 : elapsed * 0.25;
+  var laneH = H / 3, amp = laneH * 0.36, x0 = 44, span = W - x0 - 4;
+  var lanes = [
+    { label: 'C',        col: cBase, on: phase === 0 || phase >= 2, f: function(u){ return Math.sin(2*Math.PI*win*u); } },
+    { label: 'upper',    col: cUp,   on: phase === 1 || phase >= 2, f: function(u){ return Math.sin(2*Math.PI*win*(n/d)*u); } },
+    { label: 'together', col: cSum,  on: phase >= 2,                f: function(u){ return (Math.sin(2*Math.PI*win*u) + Math.sin(2*Math.PI*win*(n/d)*u)) / 2; } }
+  ];
+  lanes.forEach(function(L, i) {
+    var cy = laneH * i + laneH / 2;
+    g.globalAlpha = L.on ? 1 : 0.2;
+    g.fillStyle = cMuted; g.font = '10px "Source Sans 3", system-ui, sans-serif'; g.textBaseline = 'middle';
+    g.fillText(L.label, 2, cy);
+    g.strokeStyle = L.col; g.lineWidth = i === 2 ? 2 : 1.6; g.lineJoin = 'round'; g.beginPath();
+    for (var px = 0; px <= span; px += 1) {
+      var u = px / span + shift, y = cy - L.f(u) * amp;
+      if (px === 0) g.moveTo(x0, y); else g.lineTo(x0 + px, y);
+    }
+    g.stroke();
+  });
+  g.globalAlpha = 1;
+}
+function rvCaption() {
+  var n = rvState.num, d = rvState.den, up = (RV_BASE * n / d).toFixed(1);
+  var rep = (d > 12) ? ('repeats after ' + d + ' waves')
+          : (n === d ? 'identical waves' : 'repeats every ' + d + (d === 1 ? ' wave' : ' waves'));
+  document.getElementById('ratio-scope-cap').innerHTML =
+    '<span>' + RV_BASE.toFixed(1) + ' &times; ' + n + '/' + d + ' = ' + up + ' Hz</span><span>' + rep + '</span>';
+}
+function rvPlay(num, den, color) {
+  rvState.num = num; rvState.den = den; rvState.color = color; rvCaption();
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  rvState.t0 = performance.now();
+  if (rvState.raf) cancelAnimationFrame(rvState.raf);
+  var tick = function(now) {
+    var e = (now - rvState.t0) / 1000;
+    if (e >= 3.05) { rvState.raf = 0; rvRender(-1); return; }
+    rvRender(e); rvState.raf = requestAnimationFrame(tick);
+  };
+  rvState.raf = requestAnimationFrame(tick);
+}
+window.addEventListener('resize', function() { if (!rvState.raf) rvRender(-1); });
+
 function buildRatios() {
   const list = document.getElementById('ratios-list');
   if (list.children.length > 0) return;
@@ -4559,11 +4626,18 @@ function buildRatios() {
         </div>
       </div>
     `;
-    const play = () => playRatio(num, den);
+    const play = () => {
+      playRatio(num, den);
+      rvPlay(num, den, r.color);
+      list.querySelectorAll('.ratio-card.active').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+    };
     card.addEventListener('click', play);
     card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } });
     list.appendChild(card);
   });
+  rvCaption();
+  requestAnimationFrame(function() { rvRender(-1); });
 }
 
 // ===== QUIZ =====
