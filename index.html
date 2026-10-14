@@ -707,7 +707,7 @@
   .quiz-next-wrap { text-align: center; margin-top: 16px; }
   #quiz-score { text-align: center; margin-top: 14px; font-size: 0.88rem; color: var(--muted); }
   #ratio-scope { position: sticky; top: 0; z-index: 5; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; padding: 8px 10px 7px; margin-bottom: 12px; box-shadow: 1px 2px 6px rgba(50,25,5,0.14); }
-  #ratio-scope canvas { width: 100%; height: 78px; display: block; }
+  #ratio-scope canvas { width: 100%; height: 88px; display: block; }
   #ratio-scope-cap { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.35; }
   .ratio-card.active { border-color: var(--copper); }
   .ratio-play { font-size: 0.7rem; color: var(--copper-text); font-style: normal; font-weight: 600; letter-spacing: 0.04em; margin-left: 6px; opacity: 0.85; }
@@ -1386,7 +1386,7 @@
       <div class="page-sub">The numerical architecture of harmony</div>
     </div>
     <div class="section-label hint" style="margin-bottom:10px">Tap a card to hear the ratio and see its waves</div>
-    <div id="ratio-scope" aria-label="The two sound waves of the chosen interval, and the wave they make together">
+    <div id="ratio-scope" aria-label="The two sound waves of the chosen interval, overlaid to show how they line up">
       <canvas id="ratio-scope-cv"></canvas>
       <div id="ratio-scope-cap"></div>
     </div>
@@ -4547,7 +4547,7 @@ function buildHistory() {
 // ---- Ratio scope: the two waves of an interval and the wave they make together ----
 var rvState = { num: 3, den: 2, color: '#60c8a0', t0: 0, raf: 0 };
 var RV_BASE = 261.63;
-function rvWindow(den) { return Math.max(3, Math.min(12, den)); }
+function rvWindow(den) { return Math.min(12, den); }
 function rvRender(elapsed) {   // elapsed = seconds into playback, or -1 for rest
   var cv = document.getElementById('ratio-scope-cv');
   if (!cv || !cv.clientWidth) return;
@@ -4555,37 +4555,42 @@ function rvRender(elapsed) {   // elapsed = seconds into playback, or -1 for res
   if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
   var cs = getComputedStyle(document.documentElement);
-  var cBase = cs.getPropertyValue('--ink-soft').trim() || '#5a4f44';
-  var cSum = cs.getPropertyValue('--copper').trim() || '#a85c32';
-  var cUp = nsInk(rvState.color), cMuted = cs.getPropertyValue('--muted').trim() || '#695f52';
-  var n = rvState.num, d = rvState.den, win = rvWindow(d);
+  var cBase = cs.getPropertyValue('--ink').trim() || '#2d2521';
+  var cRoot = cs.getPropertyValue('--root').trim() || '#a8281f';
+  var cLine = cs.getPropertyValue('--border').trim() || '#d9c9a8';
+  var cUp = nsInk(rvState.color);
+  var n = rvState.num, d = rvState.den, win = rvWindow(d), meets = (d <= 12);
   var phase = elapsed < 0 ? 3 : (elapsed < 0.9 ? 0 : (elapsed < 1.85 ? 1 : 2));
-  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var shift = (elapsed < 0 || still) ? 0 : elapsed * 0.25;
-  var laneH = H / 3, amp = laneH * 0.36, x0 = 44, span = W - x0 - 4;
-  var lanes = [
-    { label: 'C',        col: cBase, on: phase === 0 || phase >= 2, f: function(u){ return Math.sin(2*Math.PI*win*u); } },
-    { label: 'upper',    col: cUp,   on: phase === 1 || phase >= 2, f: function(u){ return Math.sin(2*Math.PI*win*(n/d)*u); } },
-    { label: 'together', col: cSum,  on: phase >= 2,                f: function(u){ return (Math.sin(2*Math.PI*win*u) + Math.sin(2*Math.PI*win*(n/d)*u)) / 2; } }
-  ];
-  lanes.forEach(function(L, i) {
-    var cy = laneH * i + laneH / 2;
-    g.globalAlpha = L.on ? 1 : 0.2;
-    g.fillStyle = cMuted; g.font = '10px "Source Sans 3", system-ui, sans-serif'; g.textBaseline = 'middle';
-    g.fillText(L.label, 2, cy);
-    g.strokeStyle = L.col; g.lineWidth = i === 2 ? 2 : 1.6; g.lineJoin = 'round'; g.beginPath();
-    for (var px = 0; px <= span; px += 1) {
-      var u = px / span + shift, y = cy - L.f(u) * amp;
+  var cy = H / 2 + 5, amp = H * 0.36, x0 = 8, span = W - 16;
+  g.strokeStyle = cLine; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, cy); g.lineTo(x0 + span, cy); g.stroke();
+  if (meets && phase >= 2) {
+    g.save(); g.strokeStyle = cRoot; g.lineWidth = 1; g.setLineDash([3, 3]);
+    [x0, x0 + span].forEach(function(x) { g.beginPath(); g.moveTo(x, 4); g.lineTo(x, H - 3); g.stroke(); });
+    g.restore();
+  }
+  function wave(cycles, col, on) {
+    g.globalAlpha = on ? 1 : 0.18; g.strokeStyle = col; g.lineWidth = 1.8; g.lineJoin = 'round'; g.beginPath();
+    for (var px = 0; px <= span; px++) {
+      var y = cy - Math.sin(2 * Math.PI * cycles * px / span) * amp;
       if (px === 0) g.moveTo(x0, y); else g.lineTo(x0 + px, y);
     }
-    g.stroke();
-  });
-  g.globalAlpha = 1;
+    g.stroke(); g.globalAlpha = 1;
+  }
+  wave(win, cBase, phase !== 1);
+  wave(win * n / d, cUp, phase !== 0);
+  if (meets && phase >= 2) {
+    g.fillStyle = cRoot;
+    [x0, x0 + span].forEach(function(x) { g.beginPath(); g.arc(x, cy, 3.5, 0, 7); g.fill(); });
+    g.font = '10.5px "Source Sans 3", system-ui, sans-serif'; g.textBaseline = 'top';
+    g.textAlign = 'left'; g.fillText('start together', x0 + 6, 4);
+    g.textAlign = 'right'; g.fillText('together again', x0 + span - 6, 4);
+  }
 }
 function rvCaption() {
   var n = rvState.num, d = rvState.den, up = (RV_BASE * n / d).toFixed(1);
-  var rep = (d > 12) ? ('repeats after ' + d + ' waves')
-          : (n === d ? 'identical waves' : 'repeats every ' + d + (d === 1 ? ' wave' : ' waves'));
+  var rep = (n === d) ? 'identical waves'
+          : (d > 12 ? 'they take ' + d + ' waves to meet'
+                    : (d + (d === 1 ? ' wave meets ' : ' waves meet ') + n + (n === 1 ? ' wave' : ' waves')));
   document.getElementById('ratio-scope-cap').innerHTML =
     '<span>' + RV_BASE.toFixed(1) + ' &times; ' + n + '/' + d + ' = ' + up + ' Hz</span><span>' + rep + '</span>';
 }
