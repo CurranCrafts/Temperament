@@ -243,6 +243,15 @@
   .sel-btn:hover { background: var(--surface3); border-color: var(--copper-light); }
   .sel-btn.active { background: var(--copper-light); border-color: var(--copper-light); color: var(--on-copper); }
 
+  /* Tapped definitions: a word in plain text that opens a one-sentence card. */
+  .term { -webkit-appearance: none; appearance: none; display: inline; font: inherit; line-height: inherit; letter-spacing: inherit; text-transform: inherit; text-align: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; margin: 0; padding: 0; min-height: 0; text-decoration: underline dotted var(--copper-text); text-decoration-thickness: 1.5px; text-underline-offset: 3px; width: auto; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .term:hover, .term[aria-expanded="true"] { text-decoration-style: solid; color: var(--copper-text); }
+  .term:focus-visible { outline: 2px solid var(--copper-light); outline-offset: 2px; }
+  #ns-term-card { position: absolute; z-index: 150; left: 0; top: 0; width: max-content; max-width: min(300px, calc(100vw - 24px)); box-sizing: border-box; background: var(--surface); border: 1px solid var(--border); border-top: 2px solid var(--copper); border-radius: 2px; box-shadow: 0 6px 18px rgba(45,37,33,0.18); padding: 10px 14px 12px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 15px; font-weight: 400; font-style: normal; line-height: 1.45; letter-spacing: normal; text-transform: none; text-align: left; color: var(--ink); outline: none; }
+  #ns-term-card[hidden] { display: none; }
+  #ns-term-card .tc-name { font-family: 'Playfair Display', Georgia, serif; font-size: 1.05rem; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  #ns-term-card .tc-play { margin-top: 9px; padding: 5px 12px; font-size: 0.9rem; }
+
   #chord-result {
     background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--copper-light); border-radius: 2px;
     box-shadow: 1px 2px 8px rgba(50,25,5,0.14); padding: 18px; text-align: center; min-height: 100px;
@@ -1270,7 +1279,7 @@
         <strong>Why a circle?</strong> Move clockwise by a perfect fifth (7 semitones) and after exactly twelve steps you return to your starting key, having visited all twelve. Adjacent keys share six of their seven notes — which is why one step is a gentle change of scenery and a jump across the circle is not. The outer ring holds the major keys; the inner ring their <em>relative minors</em>: the same seven notes, a different one called home.
       </div>
       <div class="insight-box" style="max-width:640px">
-        <strong>The Pythagorean Comma.</strong> If you stack twelve pure fifths (3:2 each), you should land exactly seven octaves above your starting note, and the wheel would close. It doesn&rsquo;t. Twelve pure fifths overshoot by about 23.5 cents, roughly a quarter of a semitone. So we use <em>equal temperament</em>, narrowing each fifth by about 2 cents. And at last, the circle closes. <button type="button" class="comma-link" onclick="nsGoWhyTemperament()">Why that bargain is worth making &rarr;</button>
+        <strong>The Pythagorean Comma.</strong> If you stack twelve pure fifths (3:2 each), you should land exactly seven octaves above your starting note, and the wheel would close. It doesn&rsquo;t. Twelve pure fifths overshoot by about 23.5 <button type="button" class="term" data-term="cents" aria-expanded="false" aria-controls="ns-term-card">cents</button>, roughly a quarter of a semitone. So we use <em>equal temperament</em>, narrowing each fifth by about 2 cents. And at last, the circle closes. <button type="button" class="comma-link" onclick="nsGoWhyTemperament()">Why that bargain is worth making &rarr;</button>
       </div>
       <div class="wonder-quote">
         "Music is a hidden arithmetic exercise of the soul, which does not know that it is counting."
@@ -1299,7 +1308,7 @@
             <span><i class="lg-scale"></i>note in this key</span>
           </div>
           <p style="text-align:center;font-size:0.78rem;color:var(--muted);max-width:560px;margin:9px auto 0;line-height:1.55;font-style:italic">
-            A single octave can't always hold a chord stacked above its root, so some chords show as inversions — the red root won't be the lowest lit key. The note names always read from the root up.
+            A single octave can't always hold a chord stacked above its root, so some chords show as <button type="button" class="term" data-term="inversion" aria-expanded="false" aria-controls="ns-term-card">inversions</button> — the red root won't be the lowest lit key. The note names always read from the root up.
           </p>
         </div>
         <div class="kc-stage-info">
@@ -1317,7 +1326,7 @@
 
       <hr class="divider">
 
-      <div class="section-label hint" style="margin-top:8px">Or build any chord on that home note — pick a quality</div>
+      <div class="section-label hint" style="margin-top:8px">Or build any chord on that home note — pick a <button type="button" class="term" data-term="chord quality" aria-expanded="false" aria-controls="ns-term-card">quality</button></div>
       <div class="chord-section">
         <h3>Chord Quality</h3>
         <div class="btn-grid" id="quality-btns"></div>
@@ -1329,7 +1338,7 @@
       <hr class="divider">
 
       <div class="insight-box">
-        <strong>Chord anatomy:</strong> Every chord is a stack of intervals. A <em>major triad</em> is a major third (4 semitones) with a perfect fifth (7 semitones) above the root; lower that third one semitone and the triad turns minor. Add a minor seventh to a major triad and you get the dominant 7th, the engine chord of tonal music. Its restlessness has a precise source: a <em>tritone</em> sits between the 3rd and the ♭7, and tritones demand resolution. Swap in a major seventh instead and the tension changes character — the maj7 sits a half-step under the octave, close enough to home to point at it without needing to arrive.
+        <strong>Chord anatomy:</strong> Every chord is a stack of intervals. A <em>major triad</em> is a major third (4 <button type="button" class="term" data-term="semitone" aria-expanded="false" aria-controls="ns-term-card">semitones</button>) with a perfect fifth (7 semitones) above the root; lower that third one semitone and the triad turns minor. Add a minor seventh to a major triad and you get the dominant 7th, the engine chord of tonal music. Its restlessness has a precise source: a <em>tritone</em> sits between the 3rd and the ♭7, and tritones demand resolution. Swap in a major seventh instead and the tension changes character — the maj7 sits a half-step under the octave, close enough to home to point at it without needing to arrive.
       </div>
       <div class="insight-box" style="margin-top:14px">
         <strong>The Roman Numeral System</strong> — Musicians label chords by scale degree (I, ii, iii…) instead of note names, because the relationships are what matter. A I–V–vi–IV in C major (C–G–Am–F) does the same job as D–A–Bm–G in D major: the same moves from a different starting point, which is why a song transposed to a new key is still recognizably itself. Uppercase numerals are major chords, lowercase are minor, and the ° marks vii as diminished.
@@ -1408,23 +1417,26 @@
     </div>
     <div id="why-temperament" class="why-card">
       <h3>Why Temperament?</h3>
-      <svg id="why-gap" viewBox="0 0 340 150" role="img" aria-label="Seven octaves and twelve pure fifths end almost, but not quite, at the same pitch. Zoomed in, the fifths overshoot by about a quarter of a semitone." xmlns="http://www.w3.org/2000/svg">
-        <g font-family="'Source Sans 3',system-ui,sans-serif" font-size="10.5">
-          <text x="4" y="12" fill="var(--muted)">7 octaves</text>
+      <svg id="why-gap" viewBox="0 0 340 188" role="img" aria-label="Going up seven octaves and going up twelve pure fifths are meant to end on the same note, C. Zoomed in on that last note, twelve fifths end a hair above C, about a quarter of the way to C sharp. That small gap is the problem temperament solves." xmlns="http://www.w3.org/2000/svg">
+        <g font-family="'Source Sans 3',system-ui,sans-serif" font-size="12">
+          <text x="4" y="13" fill="var(--muted)">Up 7 octaves</text>
           <g id="why-oct"></g>
-          <text x="4" y="46" fill="var(--muted)">12 pure fifths</text>
+          <text x="4" y="47" fill="var(--muted)">Up 12 pure fifths</text>
           <g id="why-fifths"></g>
-          <path d="M335.5 31 L240 92 M335.5 56 L300 92" stroke="var(--root)" stroke-width="0.8" stroke-dasharray="2.5 2.5" fill="none" opacity="0.7"/>
-          <rect x="30" y="92" width="280" height="44" rx="2" fill="var(--surface2)" stroke="var(--border)"/>
-          <line x1="50" y1="114" x2="290" y2="114" stroke="var(--border)" stroke-width="1.2"/>
-          <line x1="50" y1="106" x2="50" y2="122" stroke="var(--ink)" stroke-width="1.6"/>
-          <line x1="290" y1="106" x2="290" y2="122" stroke="var(--muted)" stroke-width="1"/>
-          <line x1="106.3" y1="104" x2="106.3" y2="124" stroke="var(--root)" stroke-width="1.8"/>
-          <rect x="50" y="110" width="56.3" height="8" fill="var(--root)" opacity="0.28"/>
-          <text x="50" y="102" text-anchor="start" fill="var(--ink)">7 octaves lands here</text>
-          <text x="106.3" y="133" text-anchor="start" fill="var(--root)" font-weight="600">12 fifths land here</text>
-          <text x="290" y="133" text-anchor="end" fill="var(--muted)">+1 semitone</text>
-          <text x="170" y="86" text-anchor="middle" fill="var(--muted)" font-style="italic">zoomed in: the last semitone</text>
+          <line x1="300" y1="16" x2="300" y2="68" stroke="var(--ink)" stroke-width="1.4"/>
+          <text x="313" y="11" text-anchor="end" fill="var(--ink)">both aim for the same C</text>
+          <rect x="287" y="18" width="26" height="51" rx="3" fill="none" stroke="var(--root)" stroke-width="1" stroke-dasharray="3 2.5"/>
+          <path d="M287 69 L16 100 M313 69 L300 100" stroke="var(--root)" stroke-width="0.9" stroke-dasharray="3 2.5" fill="none" opacity="0.75"/>
+          <rect x="16" y="100" width="284" height="84" rx="2" fill="var(--surface2)" stroke="var(--border)"/>
+          <rect x="36" y="135" width="57.2" height="10" fill="var(--root)" opacity="0.28"/>
+          <line x1="36" y1="140" x2="280" y2="140" stroke="var(--border)" stroke-width="1.2"/>
+          <line x1="280" y1="132" x2="280" y2="148" stroke="var(--muted)" stroke-width="2"/>
+          <text x="280" y="122" text-anchor="end" fill="var(--muted)">one semitone up: C&#9839;</text>
+          <line x1="36" y1="128" x2="36" y2="150" stroke="var(--ink)" stroke-width="2"/>
+          <text x="36" y="122" text-anchor="start" fill="var(--ink)" font-weight="600">7 octaves: C</text>
+          <line x1="93.2" y1="128" x2="93.2" y2="156" stroke="var(--root)" stroke-width="2"/>
+          <text x="88" y="161" text-anchor="end" fill="var(--root)" font-size="11" opacity="0.85">23.5 cents</text>
+          <text x="93.2" y="176" text-anchor="start" fill="var(--root)" font-weight="600">12 fifths: a hair above C</text>
         </g>
       </svg>
       <p>Nature hands us pure ratios, and they are lovely: the octave, the fifth, the third. The trouble is that they refuse to agree with one another. Stack twelve pure fifths and you land a little sharp of seven octaves, a gap of about a quarter of a semitone. No amount of care closes it.</p>
@@ -1433,7 +1445,7 @@
       <button type="button" id="why-more-btn" class="why-more" aria-expanded="false" aria-controls="why-more">Hear what it costs <span aria-hidden="true">&#9662;</span></button>
       <div id="why-more" class="why-more-body" hidden>
         <p>Tune a keyboard in pure fifths and eleven of them sound sweet, while the twelfth is left to absorb the whole gap. It sounds so harsh that players called it the wolf.</p>
-        <p>Equal temperament has no wolf, and it has a price: the piano&rsquo;s major third is about 14 cents sharp of the pure 5:4. Hear both, pure first, then the piano&rsquo;s.</p>
+        <p>Equal temperament has no wolf, and it has a price: the piano&rsquo;s major third is about 14 <button type="button" class="term" data-term="cents" aria-expanded="false" aria-controls="ns-term-card">cents</button> sharp of the pure 5:4. Hear both, pure first, then the piano&rsquo;s.</p>
         <button type="button" id="why-third-btn" class="why-play">&#9654; Pure third, then piano&rsquo;s</button>
         <span id="why-third-say" aria-live="polite"></span>
       </div>
@@ -3286,6 +3298,7 @@ function nsRefreshLockedContent() {
 const panelBuilt = {};
 
 function showPanel(id) {
+  nsTermClose(false);
   saveLastPanel(id);
   nsTrack('panel_opened', { panel: String(id) });
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -3681,11 +3694,11 @@ function buildDiatonicForRoot(pc) {
       const qualWord = quality==='dim'?'diminished':quality;
       nm.innerHTML =
         `<div style="font-size:0.9rem;font-style:italic;color:var(--muted);font-family:'Source Sans 3',system-ui,sans-serif;margin-bottom:3px">Key of ${keyLabel(pc)}</div>` +
-        `${numeral} · ${chordRoot}${suffix} <span style="font-size:1rem;color:var(--ink-soft)">${qualWord} triad</span>`;
+        `${nsTerm('roman', numeral)} · ${chordRoot}${suffix} <span style="font-size:1rem;color:var(--ink-soft)">${qualWord} triad</span>`;
       nm.style.color = 'var(--copper-text)';
       document.getElementById('chord-notes-display').innerHTML =
         notes.map((n,i) => `<span class="note-pill ${i===0?'root':''}">${n}</span>`).join(' ');
-      document.getElementById('chord-formula').textContent = 'Notes listed from the root up';
+      document.getElementById('chord-formula').innerHTML = chordRoot + suffix + ': the ' + (quality === 'dim' ? nsTerm('diminished', 'diminished') : qualWord) + ' chord on the ' + ['1st','2nd','3rd','4th','5th','6th','7th'][degreeIdx] + ' ' + nsTerm('degree', 'degree') + '.';
       document.getElementById('chord-replay-btn').style.display = 'none';
       showDiatInsight(degreeIdx, chordRoot, quality, notes, key, noteIdx);
     };
@@ -3696,24 +3709,138 @@ function buildDiatonicForRoot(pc) {
     `<strong style="color: var(--copper-text)">The seven chords of ${key} Major</strong> — one chord on each scale degree, every one a different feeling drawn from the same seven notes.`;
 }
 
+// ============================================================
+//  TAPPED DEFINITIONS
+//  A word in plain text becomes a quiet dotted-underline button. Tap it and a
+//  small card opens above it with one sentence, plus a play button when the
+//  word is a sound. One card at a time; an outside tap or Esc closes it, a small
+//  scroll does not. Never put a term inside a control (the control owns the tap).
+//  Build markup with nsTerm(key, word); static HTML uses the same button markup.
+// ============================================================
+var NS_TERMS = {
+  'semitone':       { name: 'semitone', def: 'One key to the very next key, black or white. Also called a half step or half tone.', hear: { label: 'C, C♯', semis: 1 } },
+  'major 3rd':      { name: 'major 3rd', def: 'Four semitones up. The bright third.', hear: { label: 'C, E', semis: 4 } },
+  'minor 3rd':      { name: 'minor 3rd', def: 'Three semitones up. The darker third.', hear: { label: 'C, E♭', semis: 3 } },
+  'perfect 5th':    { name: 'perfect 5th', def: 'Seven semitones up. The steadiest interval after the octave.', hear: { label: 'C, G', semis: 7 } },
+  'octave':         { name: 'octave', def: 'Twelve semitones: the same note, higher.', hear: { label: 'C, C', semis: 12 } },
+  'degree':         { name: 'degree', def: 'A note’s number in the scale, counted from home. In C major, D is the 2nd degree.' },
+  'tonic':          { name: 'home note (tonic)', def: 'The note a key is built around, the one that feels like arrival.' },
+  'mode':           { name: 'mode', def: 'The same seven notes, started from a different one.' },
+  'chord quality':  { name: 'chord quality', def: 'The chord’s character (major, minor, diminished), set by the intervals stacked above its root.' },
+  'diminished':     { name: 'diminished', def: 'A stack of minor thirds. Tense, and it wants to resolve.' },
+  'dominant 7th':   { name: 'dominant 7th', def: 'A major chord plus a minor 7th, built on the 5th degree. It pulls hard toward home.' },
+  'inversion':      { name: 'inversion', def: 'The same chord with a different note on the bottom.' },
+  'roman':          { name: 'Roman numerals', def: 'Capital means major, lowercase means minor, ° means diminished.' },
+  'relative minor': { name: 'relative minor', def: 'The minor key that shares a major key’s notes, starting on the 6th degree. A minor for C major.' },
+  'cents':          { name: 'cents', def: 'A hundredth of a piano semitone. Twelve hundred cents make an octave.', hear: { label: 'Pure third, then piano’s', cents: true, onlyIn: '#ratios-panel' } }
+};
+function nsTerm(key, word) {
+  return '<button type="button" class="term" data-term="' + key + '" aria-expanded="false" aria-controls="ns-term-card">' + word + '</button>';
+}
+// Wrap the first major 3rd / minor 3rd / perfect 5th found in a chord-formula string.
+function nsTermFormula(str) {
+  [['major 3rd', /major 3rd/i], ['minor 3rd', /minor 3rd/i], ['perfect 5th', /perfect 5th/i]].forEach(function (r) {
+    str = str.replace(r[1], function (m) { return nsTerm(r[0], m); });
+  });
+  return str;
+}
+var nsTermOpen = null, nsTermDown = null;
+function nsTermCard() {
+  var c = document.getElementById('ns-term-card');
+  if (c) return c;
+  c = document.createElement('div');
+  c.id = 'ns-term-card'; c.hidden = true; c.tabIndex = -1; c.setAttribute('role', 'dialog');
+  document.body.appendChild(c);
+  return c;
+}
+function nsTermClose(returnFocus) {
+  var a = nsTermOpen;
+  if (!a) return;
+  nsTermOpen = null;
+  var c = document.getElementById('ns-term-card');
+  if (c) c.hidden = true;
+  try { a.setAttribute('aria-expanded', 'false'); } catch (e) {}
+  if (returnFocus && document.body.contains(a)) { try { a.focus(); } catch (e) {} }
+}
+function nsTermHear(h) {
+  if (h.cents) { nsWhyThird(); return; }
+  playInterval(ROOT_MIDI, ROOT_MIDI + h.semis);
+}
+function nsTermPlace(btn, c) {
+  var r = btn.getBoundingClientRect();
+  var vw = document.documentElement.clientWidth;
+  var cw = c.offsetWidth, ch = c.offsetHeight;
+  var left = r.left + r.width / 2 - cw / 2;
+  left = Math.max(12, Math.min(left, vw - cw - 12));
+  var top = r.top - ch - 8;              // above the word: a thumb covers what is below it
+  if (top < 8) top = r.bottom + 8;       // no room above, so drop below
+  c.style.left = Math.round(left + window.pageXOffset) + 'px';
+  c.style.top = Math.round(top + window.pageYOffset) + 'px';
+}
+function nsTermShow(btn, viaKeyboard) {
+  var key = btn.getAttribute('data-term'), t = NS_TERMS[key];
+  if (!t) return;
+  nsTermClose(false);
+  var c = nsTermCard();
+  c.textContent = '';
+  var n = document.createElement('div'); n.className = 'tc-name'; n.textContent = t.name; c.appendChild(n);
+  var d = document.createElement('div'); d.className = 'tc-def'; d.textContent = t.def; c.appendChild(d);
+  if (t.hear && (!t.hear.onlyIn || btn.closest(t.hear.onlyIn))) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'sel-btn tc-play';
+    b.textContent = '▶ ' + (t.hear.cents ? t.hear.label : 'Hear ' + t.hear.label);
+    b.addEventListener('click', function () { nsTermHear(t.hear); });
+    c.appendChild(b);
+  }
+  c.setAttribute('aria-label', t.name);
+  c.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+  nsTermOpen = btn;
+  nsTermPlace(btn, c);
+  nsTrack('term_opened', { term: key });
+  if (viaKeyboard) { try { c.focus({ preventScroll: true }); } catch (e) {} }
+}
+document.addEventListener('click', function (e) {
+  var t = e.target.closest && e.target.closest('.term');
+  if (!t) return;
+  e.preventDefault();
+  if (nsTermOpen === t) nsTermClose(false); else nsTermShow(t, e.detail === 0);
+});
+// Outside tap closes; a drag (scroll) does not, so track pointer travel.
+document.addEventListener('pointerdown', function (e) { nsTermDown = { x: e.clientX, y: e.clientY }; }, true);
+document.addEventListener('pointerup', function (e) {
+  if (!nsTermOpen || !nsTermDown) return;
+  var moved = Math.abs(e.clientX - nsTermDown.x) + Math.abs(e.clientY - nsTermDown.y);
+  nsTermDown = null;
+  if (moved > 10) return;
+  if (e.target.closest && (e.target.closest('.term') || e.target.closest('#ns-term-card'))) return;
+  nsTermClose(false);
+}, true);
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && nsTermOpen) nsTermClose(true); });
+window.addEventListener('resize', function () {
+  if (!nsTermOpen) return;
+  if (!document.body.contains(nsTermOpen)) { nsTermClose(false); return; }
+  nsTermPlace(nsTermOpen, document.getElementById('ns-term-card'));
+});
+
 function showDiatInsight(deg, root, quality, notes, key, noteIdx) {
   playDiatonicChord(noteIdx, quality);
   const mode = MODES[deg];
   const numeral = DIATONIC_NUMERALS[deg];
   const functions = [
-    'The <strong>tonic</strong> — home. Every progression in the key is measured by how far it wanders from this chord and how it gets back.',
+    'The <strong><button type="button" class="term" data-term="tonic" aria-expanded="false" aria-controls="ns-term-card">tonic</button></strong> — home. Every progression in the key is measured by how far it wanders from this chord and how it gets back.',
     'The <strong>supertonic</strong> — the set-up chord. Jazz knows it as the ii of ii–V–I: it points at the dominant, which points at home.',
     'The <strong>mediant</strong> — shares two of its three notes with the tonic, which makes it home\'s quieter understudy.',
     'The <strong>subdominant</strong> — away from home but in no hurry to return. IV–I is the "Amen" at the end of a hymn.',
     'The <strong>dominant</strong> — carries the leading tone, the note a half-step below home. V–I is the strongest move in tonal music; much of harmony is the art of delaying it.',
-    'The <strong>submediant</strong> — the relative minor\'s home chord. Land here when the ear expects I and you get the deceptive cadence: the promise of home, kept in minor.',
+    'The <strong>submediant</strong> — the <button type="button" class="term" data-term="relative minor" aria-expanded="false" aria-controls="ns-term-card">relative minor</button>\'s home chord. Land here when the ear expects I and you get the deceptive cadence: the promise of home, kept in minor.',
     'The <strong>leading-tone chord</strong> — diminished and restless. It almost always speaks for the dominant, and hands the phrase back to the tonic.'
   ];
   document.getElementById('diatonic-insight').innerHTML = `
     <strong style="color: var(--copper-text)">${numeral} · ${root}${quality==='minor'?'m':quality==='dim'?'°':''}</strong>
     <span style="color:var(--muted);margin-left:8px">Notes: ${notes.join(' · ')}</span>
     <div style="margin-top:8px">${functions[deg]}</div>
-    <div style="margin-top:8px;color:var(--muted)">Its natural mode is <em style="color:${nsInk(mode.color)}">${mode.name}</em> — ${mode.feel.split('. ')[0].replace(/\.$/,'')}.</div>
+    <div style="margin-top:8px;color:var(--muted)">Its natural <button type="button" class="term" data-term="mode" aria-expanded="false" aria-controls="ns-term-card">mode</button> is <em style="color:${nsInk(mode.color)}">${mode.name}</em> — ${mode.feel.split('. ')[0].replace(/\.$/,'')}.</div>
   `;
 }
 
@@ -4160,7 +4287,7 @@ function kcBuildChord() {
   nameEl.style.color = 'var(--copper-text)';
   document.getElementById('chord-notes-display').innerHTML =
     notes.map((n,i) => `<span class="note-pill ${i===0?'root':''}">${n}</span>`).join(' ');
-  document.getElementById('chord-formula').textContent = `${q.formula}   ·   ${q.feel}`;
+  document.getElementById('chord-formula').innerHTML = nsTermFormula(q.formula) + '   ·   ' + q.feel;
   playChordFromBuilder(kcTonic, q.intervals);
   document.getElementById('chord-replay-btn').style.display = 'inline-block';
   window._lastChordRoot = kcTonic;
@@ -4298,7 +4425,7 @@ function ivShow(semi) {
     '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:1.5rem;color:' + nsInk(iv.color) + ';margin-bottom:3px">' +
       iv.name + ' <span style="font-size:0.95rem;color:var(--muted);font-style:italic">' + iv.abbr + '</span>' +
     '</div>' +
-    '<div style="font-size:0.92rem;color:var(--ink)">' + iv.semitones + ' semitone' + (iv.semitones === 1 ? '' : 's') + ' from C&nbsp;&nbsp;·&nbsp;&nbsp;C up to ' + top + '</div>' +
+    '<div style="font-size:0.92rem;color:var(--ink)">' + iv.semitones + ' ' + nsTerm('semitone', 'semitone' + (iv.semitones === 1 ? '' : 's')) + ' from C&nbsp;&nbsp;·&nbsp;&nbsp;C up to ' + top + '</div>' +
     '<div style="font-size:0.85rem;color:var(--muted);font-style:italic;margin-top:4px">🎵 ' + iv.song + '</div>';
 }
 
@@ -4435,7 +4562,7 @@ function cqShow(idx){
   document.getElementById('cq-readout').innerHTML =
     '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:1.5rem;color:' + nsInk(q.color) + ';margin-bottom:3px">C ' + q.name +
       ' <span style="font-size:0.95rem;color:var(--muted);font-style:italic">' + q.abbr + '</span></div>' +
-    '<div style="font-size:0.92rem;color:var(--ink)">' + q.formula + '</div>' +
+    '<div style="font-size:0.92rem;color:var(--ink)">' + nsTermFormula(q.formula) + '</div>' +
     '<div style="font-size:0.85rem;color:var(--muted);font-style:italic;margin-top:4px">' + q.feel + '</div>';
 }
 function cqPlay(){
@@ -4654,7 +4781,7 @@ window.addEventListener('resize', function() { if (!rvState.raf) rvRender(-1); }
 
 // ---- Why Temperament? card ----
 function nsBuildWhyGap() {
-  var NS = 'http://www.w3.org/2000/svg', x0 = 50 - 46, w = 332 - 4; // bar spans x 4..332
+  var NS = 'http://www.w3.org/2000/svg', x0 = 50 - 46, w = 300 - 4; // bars span x 4..300
   function seg(g, count, y, tintA, tintB) {
     var g2 = document.getElementById(g); if (!g2 || g2.children.length) return;
     for (var i = 0; i < count; i++) {
@@ -4664,8 +4791,8 @@ function nsBuildWhyGap() {
       r.setAttribute('fill', i % 2 ? tintB : tintA); g2.appendChild(r);
     }
   }
-  seg('why-oct', 7, 16, 'var(--copper-light)', 'var(--copper)');
-  seg('why-fifths', 12, 50, '#7a9a86', '#5f8470');
+  seg('why-oct', 7, 18, 'var(--copper-light)', 'var(--copper)');
+  seg('why-fifths', 12, 52, '#7a9a86', '#5f8470');
 }
 function nsGoWhyTemperament() {
   showPanel('ratios');
@@ -4677,12 +4804,12 @@ function nsGoWhyTemperament() {
 function nsWhyThird() {
   var ctx = getAudioCtx(); if (ctx.state === 'suspended') ctx.resume();
   var now = ctx.currentTime + 0.04, c = 261.63, say = document.getElementById('why-third-say');
-  playFreq(c, now, 1.1, 0.42); playFreq(c * 5 / 4, now, 1.1, 0.42);
-  playFreq(c, now + 1.5, 1.1, 0.42); playFreq(c * Math.pow(2, 4 / 12), now + 1.5, 1.1, 0.42);
+  playFreq(c, now, 1.4, 0.42); playFreq(c * 5 / 4, now, 1.4, 0.42);
+  playFreq(c, now + 2.2, 1.4, 0.42); playFreq(c * Math.pow(2, 4 / 12), now + 2.2, 1.4, 0.42);
   if (say) {
     say.textContent = 'pure';
-    setTimeout(function() { say.textContent = 'piano'; }, 1500);
-    setTimeout(function() { say.textContent = ''; }, 2800);
+    setTimeout(function() { say.textContent = 'piano'; }, 2200);
+    setTimeout(function() { say.textContent = ''; }, 3800);
   }
 }
 (function() {
