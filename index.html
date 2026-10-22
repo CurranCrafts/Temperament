@@ -3167,7 +3167,7 @@ async function nsActivateLicenseInner(rawInput) {
         let msg = 'That code wasn’t recognised.';
         if (data.error === 'revoked') msg = 'This license is no longer active.';
         if (data.error === 'expired') msg = 'This program’s access has ended. Ask your instructor about renewal.';
-        if (data.error === 'activation_limit_reached') msg = 'This code has already been used its allowed number of times. Contact us if that’s wrong.';
+        if (data.error === 'activation_limit_reached') msg = 'This short code has reached its limit, but your license is fine. The long key in your purchase email (it starts with TMPR1) works on any device with no limit. Paste that here instead.';
         return { ok: false, msg: msg };
       }
       key = data.key;
